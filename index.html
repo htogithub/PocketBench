@@ -320,6 +320,41 @@ dialog::backdrop { background: rgba(8, 12, 16, .45); }
 .plist li div { flex: 1; display: flex; flex-direction: column; } .plist small { color: var(--ink2); }
 .dlg > .muted { padding: 6px 18px 20px; }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+/* ---------- schematic dialog ---------- */
+dialog.big { width: 94vw; max-width: 1700px; height: 90vh; max-height: 90vh; overflow: hidden; }
+.sch-dlg { display: flex; flex-direction: column; height: 100%; }
+.sch-dlg > header { display: flex; align-items: center; gap: 16px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.sch-dlg > header h2 { margin: 0; font: 600 17px var(--f); }
+.sch-dlg .sp, .sch-bar .sp, .ed-bar .sp { flex: 1; }
+.sch-dlg .x { border: none; background: none; color: var(--ink2); font-size: 16px; cursor: pointer; padding: 6px 8px; border-radius: 6px; }
+.sch-dlg .x:hover { background: var(--hover); }
+.sch-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.sch-bar { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-bottom: 1px solid var(--line); }
+.sch-bar .note { margin: 0; }
+.sch-bar .btn:disabled { opacity: .45; cursor: default; }
+.sch-view { flex: 1; overflow: auto; padding: 18px; background: var(--mat2); }
+.sch-view svg { display: block; margin: 0 auto; background: #fff; border-radius: 6px; box-shadow: 0 4px 18px rgba(0, 0, 0, .18); max-width: none; }
+.sch-empty { padding: 40px; text-align: center; }
+.sch-editor { flex: 1; min-height: 0; display: grid; grid-template-columns: 168px 1fr 230px; }
+.ed-pal { border-right: 1px solid var(--line); overflow-y: auto; padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+.ed-tool { display: flex; align-items: center; gap: 8px; border: 1px solid transparent; background: none; color: var(--ink); border-radius: 7px; padding: 6px 8px; cursor: pointer; font-size: 12.5px; text-align: left; }
+.ed-tool .ic { flex: none; width: 30px; height: 22px; display: inline-flex; align-items: center; justify-content: center; background: #fff; color: #14181c; border: 1px solid #c9d0d6; border-radius: 4px; font: 600 11px var(--f); }
+.ed-tool:hover { background: var(--hover); }
+.ed-tool.on { border-color: var(--accent); background: var(--hover); }
+.ed-main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.ed-bar { display: flex; align-items: center; gap: 6px; padding: 6px 10px; border-bottom: 1px solid var(--line); }
+.ed-bar .btn { padding: 5px 10px; font-size: 12.5px; }
+.ed-canvas { flex: 1; overflow: auto; background: var(--mat2); }
+.ed-svg { display: block; cursor: crosshair; }
+.ed-hint { padding: 6px 12px; font-size: 12.5px; color: var(--ink2); border-top: 1px solid var(--line); }
+.ed-props { border-left: 1px solid var(--line); padding: 10px 12px; overflow-y: auto; }
+.ed-props h4 { margin: 0 0 8px; font: 600 13px var(--f); color: var(--ink2); }
+.ed-msg { margin-top: 12px; font-size: 12.5px; color: var(--warn); line-height: 1.4; }
+
+@media (max-width: 1720px) { .tb .tbtn[data-act="import"] span, .tb .tbtn[data-act="export"] span, .tb .tbtn[data-act="fit"] span { display: none; } }
+@media (max-width: 1500px) { .tb .tbtn[data-act="new"] span, .tb .tbtn[data-act="open"] span, .tb .tbtn[data-act="save"] span, .tb .tbtn[data-act="settings"] span { display: none; } #pname { width: 170px; } .tb .sep { margin: 0 4px; } }
+@media (max-width: 1180px) { .brand span { display: none; } #pname { width: 130px; } }
 </style>
 </head>
 <body>
@@ -328,11 +363,11 @@ dialog::backdrop { background: rgba(8, 12, 16, .45); }
   <div class="brand"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#0b5cad"/><path d="M5 17c3-9 6-9 8 0s5 9 8 0 5-9 6-4" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg><span>Pocket<em>Bench</em></span></div>
   <input id="pname" spellcheck="false" data-i18n-title="tb.name" aria-label="Nom du projet">
   <nav class="tb">
-    <button class="tbtn" data-act="new"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M12 11v6M9 14h6"/></svg><span data-i18n="tb.new">Nouveau</span></button>
-    <button class="tbtn" data-act="open"><svg viewBox="0 0 24 24"><path d="M3 6h6l2 2h10v11H3z"/></svg><span data-i18n="tb.open">Ouvrir</span></button>
-    <button class="tbtn" data-act="save"><svg viewBox="0 0 24 24"><path d="M5 3h12l3 3v15H4V3z"/><path d="M8 3v5h8V3M8 21v-7h8v7"/></svg><span data-i18n="tb.save">Enregistrer</span></button>
-    <button class="tbtn" data-act="import"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 19h16"/></svg><span data-i18n="tb.import">Importer</span></button>
-    <button class="tbtn" data-act="export"><svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M4 19h16"/></svg><span data-i18n="tb.export">Exporter</span></button>
+    <button class="tbtn" data-act="new" data-i18n-title="tb.new"><svg viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M12 11v6M9 14h6"/></svg><span data-i18n="tb.new">Nouveau</span></button>
+    <button class="tbtn" data-act="open" data-i18n-title="tb.open"><svg viewBox="0 0 24 24"><path d="M3 6h6l2 2h10v11H3z"/></svg><span data-i18n="tb.open">Ouvrir</span></button>
+    <button class="tbtn" data-act="save" data-i18n-title="tb.save"><svg viewBox="0 0 24 24"><path d="M5 3h12l3 3v15H4V3z"/><path d="M8 3v5h8V3M8 21v-7h8v7"/></svg><span data-i18n="tb.save">Enregistrer</span></button>
+    <button class="tbtn" data-act="import" data-i18n-title="tb.import"><svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 19h16"/></svg><span data-i18n="tb.import">Importer</span></button>
+    <button class="tbtn" data-act="export" data-i18n-title="tb.export"><svg viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5M4 19h16"/></svg><span data-i18n="tb.export">Exporter</span></button>
     <i class="sep"></i>
     <button class="tbtn icon" data-act="undo" data-i18n-title="tb.undo"><svg viewBox="0 0 24 24"><path d="M9 7L4 12l5 5"/><path d="M4 12h11a5 5 0 0 1 0 10h-3"/></svg><span data-i18n="tb.undo">Annuler</span></button>
     <button class="tbtn icon" data-act="redo" data-i18n-title="tb.redo"><svg viewBox="0 0 24 24"><path d="M15 7l5 5-5 5"/><path d="M20 12H9a5 5 0 0 0 0 10h3"/></svg><span data-i18n="tb.redo">Rétablir</span></button>
@@ -340,11 +375,12 @@ dialog::backdrop { background: rgba(8, 12, 16, .45); }
     <button class="tbtn icon" data-act="zout" title="−"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M8 11h6M16 16l5 5"/></svg></button>
     <span id="zoomPct">100 %</span>
     <button class="tbtn icon" data-act="zin" title="+"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M8 11h6M11 8v6M16 16l5 5"/></svg></button>
-    <button class="tbtn" data-act="fit"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg><span data-i18n="tb.fit">Ajuster</span></button>
+    <button class="tbtn" data-act="fit" data-i18n-title="tb.fit"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg><span data-i18n="tb.fit">Ajuster</span></button>
     <i class="sep"></i>
+ <button class="tbtn" id="btnSchem" data-act="schem" data-i18n-title="sch.btnTitle"><svg viewBox="0 0 24 24"><path d="M2 12h4l2-5 3 10 3-10 2 5h6"/></svg><span data-i18n="sch.btn">Schéma</span></button>
     <button class="tbtn" id="btnTP" data-act="toggleTP" data-i18n-title="ui.tpTitle"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5M8 7h6M8 11h6"/></svg><span data-i18n="ui.tp">TP</span></button>
     <i class="sep"></i>
-    <button class="tbtn" data-act="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span data-i18n="tb.settings">Paramètres</span></button>
+    <button class="tbtn" data-act="settings" data-i18n-title="tb.settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span data-i18n="tb.settings">Paramètres</span></button>
   </nav>
 </header>
 <aside id="side">
@@ -362,12 +398,12 @@ dialog::backdrop { background: rgba(8, 12, 16, .45); }
 <main id="vp" data-tool="select"><div id="world"><svg id="cables" xmlns="http://www.w3.org/2000/svg"></svg></div></main>
 <footer id="status"><span id="hint"></span><span id="warn"></span><span id="simInfo"></span></footer>
 <div id="tip"></div><div id="toast" role="status"></div>
-<dialog id="dlgSettings"></dialog><dialog id="dlgProjects"></dialog>
+<dialog id="dlgSettings"></dialog><dialog id="dlgSchem" class="big"></dialog><dialog id="dlgProjects"></dialog>
 <input type="file" id="fileIn" accept=".pbench,.json,application/json" hidden>
 <script>'use strict';
 /* PocketBench — utilities */
 const PB = window.PB = {};
-PB.VERSION = '1.2.0';
+PB.VERSION = '1.3.0';
 PB.BUILD = '2026-11-05';
 
 PB.clamp = (x, a, b) => (x < a ? a : x > b ? b : x);
@@ -1355,6 +1391,42 @@ Object.assign(PB.I18N.de, {
   'ui.left': 'Bauteilleiste ein-/ausblenden', 'ui.tp': 'Labor', 'ui.tpTitle': 'Laborübungen ein-/ausblenden',
   'tp.title': 'Laborübungen', 'tp.setups': 'Fertiger Aufbau', 'tp.hint': 'Hinweis', 'tp.moreHint': 'Hinweis anzeigen', 'tp.nextHint': 'Nächster Hinweis', 'tp.hideHints': 'Hinweise ausblenden',
   'tp.confirm': 'Diesen Aufbau laden? Er ersetzt die aktuelle Verdrahtung und stellt die Geräte ein (Strg+Z stellt die vorherige Verdrahtung wieder her).', 'tp.loaded': 'Aufbau geladen: {n}', 'tp.frOnly': 'Die Aufgabenblätter sind, wie im Kurs, auf Französisch.', 'tp.steps': 'Anweisungen', 'tp.close': 'Schließen',
+});
+Object.assign(PB.I18N.fr, {
+  'sch.btn': 'Schéma', 'sch.btnTitle': 'Schéma électrique : depuis le montage ou vers le montage', 'sch.title': 'Schéma électrique', 'sch.tabView': 'Schéma du montage', 'sch.tabEdit': 'Éditeur → montage',
+  'sch.viewNote': 'Schéma théorique généré à partir de ce qui est branché sur le plan de travail.', 'sch.empty': 'Aucun circuit branché pour l’instant : pose des composants et relie les appareils, puis reviens ici.',
+  'sch.editNote': 'Dessine un schéma, puis « Créer le montage » le câble sur la plaque et règle les appareils.', 'sch.build': 'Créer le montage', 'sch.built': 'montage créé depuis le schéma',
+  'sch.tSelect': 'Sélection', 'sch.tWire': 'Fil', 'sch.p.R': 'Résistance', 'sch.p.C': 'Condensateur', 'sch.p.L': 'Bobine', 'sch.p.D': 'Diode', 'sch.p.LED': 'LED', 'sch.p.Z': 'Zener', 'sch.p.POT': 'Potentiomètre', 'sch.p.OA': 'AOP µA741',
+  'sch.p.VDC': 'Source continue (HMP)', 'sch.p.VAC': 'Générateur (HMF)', 'sch.p.GND': 'Masse ⏚', 'sch.p.VM': 'Voltmètre', 'sch.p.AM': 'Ampèremètre', 'sch.p.OM': 'Ohmmètre', 'sch.p.SC': 'Voie d’oscilloscope',
+  'sch.rotate': 'Tourner', 'sch.clear': 'Tout effacer', 'sch.confirmClear': 'Effacer tout le schéma ?', 'sch.hWire': 'Fil : clique un point de départ puis les coins successifs ; le fil s’arrête sur une broche ou un autre fil (clic droit ou Échap pour arrêter).', 'sch.hSelect': 'Clique un symbole pour le modifier, glisse-le pour le déplacer. R : tourner · Suppr : effacer.', 'sch.hPlace': 'Clique pour poser le symbole (R pour le tourner avant). Clic droit : retour à la sélection.',
+  'sch.noSel': 'Sélectionne un symbole pour régler sa valeur.', 'sch.voltage': 'Tension', 'sch.imax': 'Limite de courant', 'sch.nVdc': 'Utilise un canal de la HMP2030 (3 au maximum). La flèche pointe du + vers le −.', 'sch.wave': 'Forme', 'sch.sine': 'Sinus', 'sch.square': 'Carré', 'sch.tri': 'Triangle',
+  'sch.nVac': 'Utilise le HMF. Sa borne − est reliée à la terre, comme la masse de l’oscilloscope.', 'sch.mode': 'Mesure', 'sch.nAm': 'En série : la borne + correspond à la borne A du multimètre.', 'sch.channel': 'Voie', 'sch.nSc': 'Borne du haut : signal ; borne du bas : masse de la voie (reliée à la terre).', 'sch.nOa': 'Entrées − et + à gauche, sortie à droite, +V en haut et −V en bas.',
+  'sch.wOpen': '{n} broche(s) non reliée(s) (cercles rouges).', 'sch.eEmpty': 'Le schéma est vide.', 'sch.ePsu': 'La HMP2030 n’a que 3 canaux : 3 sources continues au maximum.', 'sch.eGen': 'Il n’y a qu’un générateur de fonctions.', 'sch.eDmm': 'Le labo n’a que 2 multimètres (voltmètres + ampèremètres + ohmmètres).', 'sch.eScope': 'Chaque voie d’oscilloscope (CH1–CH4) ne peut être utilisée qu’une fois.',
+  'sch.eNets': 'Trop de nœuds pour la plaque Hirschmann.', 'sch.eSocks': 'Trop de nœuds reliés aux appareils : la plaque n’a que 10 douilles.', 'sch.eZone': 'Trop de circuits intégrés et potentiomètres pour la plaque.', 'sch.eBoard': 'Le circuit ne tient pas sur la plaque.',
+});
+Object.assign(PB.I18N.en, {
+  'sch.btn': 'Schematic', 'sch.btnTitle': 'Circuit diagram: from the bench or to the bench', 'sch.title': 'Circuit diagram', 'sch.tabView': 'Diagram of the bench', 'sch.tabEdit': 'Editor → bench',
+  'sch.viewNote': 'Theoretical diagram generated from what is wired on the bench.', 'sch.empty': 'Nothing is wired yet: place components and connect the instruments, then come back.',
+  'sch.editNote': 'Draw a diagram, then “Build on bench” wires it on the board and sets the instruments.', 'sch.build': 'Build on bench', 'sch.built': 'bench built from the diagram',
+  'sch.tSelect': 'Select', 'sch.tWire': 'Wire', 'sch.p.R': 'Resistor', 'sch.p.C': 'Capacitor', 'sch.p.L': 'Inductor', 'sch.p.D': 'Diode', 'sch.p.LED': 'LED', 'sch.p.Z': 'Zener', 'sch.p.POT': 'Potentiometer', 'sch.p.OA': 'µA741 op-amp',
+  'sch.p.VDC': 'DC source (HMP)', 'sch.p.VAC': 'Generator (HMF)', 'sch.p.GND': 'Ground ⏚', 'sch.p.VM': 'Voltmeter', 'sch.p.AM': 'Ammeter', 'sch.p.OM': 'Ohmmeter', 'sch.p.SC': 'Scope channel',
+  'sch.rotate': 'Rotate', 'sch.clear': 'Clear all', 'sch.confirmClear': 'Clear the whole diagram?', 'sch.hWire': 'Wire: click a start point then each corner; the wire stops on a pin or another wire (right-click or Esc to stop).', 'sch.hSelect': 'Click a symbol to edit it, drag it to move it. R: rotate · Del: delete.', 'sch.hPlace': 'Click to place the symbol (R to rotate first). Right-click: back to select.',
+  'sch.noSel': 'Select a symbol to set its value.', 'sch.voltage': 'Voltage', 'sch.imax': 'Current limit', 'sch.nVdc': 'Uses an HMP2030 channel (3 at most). The arrow points from + to −.', 'sch.wave': 'Waveform', 'sch.sine': 'Sine', 'sch.square': 'Square', 'sch.tri': 'Triangle',
+  'sch.nVac': 'Uses the HMF. Its − terminal is earthed, like the scope ground.', 'sch.mode': 'Measurement', 'sch.nAm': 'In series: the + terminal is the meter’s A jack.', 'sch.channel': 'Channel', 'sch.nSc': 'Top terminal: signal; bottom terminal: channel ground (earthed).', 'sch.nOa': 'Inputs − and + on the left, output on the right, +V at the top and −V at the bottom.',
+  'sch.wOpen': '{n} unconnected pin(s) (red circles).', 'sch.eEmpty': 'The diagram is empty.', 'sch.ePsu': 'The HMP2030 has only 3 channels: 3 DC sources at most.', 'sch.eGen': 'There is only one function generator.', 'sch.eDmm': 'The lab has only 2 multimeters (voltmeters + ammeters + ohmmeters).', 'sch.eScope': 'Each scope channel (CH1–CH4) can be used only once.',
+  'sch.eNets': 'Too many nodes for the Hirschmann board.', 'sch.eSocks': 'Too many nodes connected to instruments: the board has only 10 sockets.', 'sch.eZone': 'Too many ICs and potentiometers for the board.', 'sch.eBoard': 'The circuit does not fit on the board.',
+});
+Object.assign(PB.I18N.de, {
+  'sch.btn': 'Schaltplan', 'sch.btnTitle': 'Schaltplan: aus dem Aufbau oder zum Aufbau', 'sch.title': 'Schaltplan', 'sch.tabView': 'Schaltplan des Aufbaus', 'sch.tabEdit': 'Editor → Aufbau',
+  'sch.viewNote': 'Theoretischer Schaltplan, erzeugt aus der aktuellen Verdrahtung.', 'sch.empty': 'Noch nichts verdrahtet: Bauteile setzen und Geräte anschließen, dann hierher zurückkehren.',
+  'sch.editNote': 'Schaltplan zeichnen, dann verdrahtet „Aufbau erstellen“ ihn auf dem Steckbrett und stellt die Geräte ein.', 'sch.build': 'Aufbau erstellen', 'sch.built': 'Aufbau aus dem Schaltplan erstellt',
+  'sch.tSelect': 'Auswahl', 'sch.tWire': 'Leitung', 'sch.p.R': 'Widerstand', 'sch.p.C': 'Kondensator', 'sch.p.L': 'Spule', 'sch.p.D': 'Diode', 'sch.p.LED': 'LED', 'sch.p.Z': 'Z-Diode', 'sch.p.POT': 'Potentiometer', 'sch.p.OA': 'OPV µA741',
+  'sch.p.VDC': 'Gleichspannungsquelle (HMP)', 'sch.p.VAC': 'Generator (HMF)', 'sch.p.GND': 'Masse ⏚', 'sch.p.VM': 'Voltmeter', 'sch.p.AM': 'Amperemeter', 'sch.p.OM': 'Ohmmeter', 'sch.p.SC': 'Oszilloskopkanal',
+  'sch.rotate': 'Drehen', 'sch.clear': 'Alles löschen', 'sch.confirmClear': 'Den ganzen Schaltplan löschen?', 'sch.hWire': 'Leitung: Startpunkt und dann jede Ecke anklicken; die Leitung endet an einem Pin oder einer anderen Leitung (Rechtsklick oder Esc zum Beenden).', 'sch.hSelect': 'Symbol anklicken zum Bearbeiten, ziehen zum Verschieben. R: drehen · Entf: löschen.', 'sch.hPlace': 'Klicken zum Platzieren (vorher R zum Drehen). Rechtsklick: zurück zur Auswahl.',
+  'sch.noSel': 'Ein Symbol auswählen, um seinen Wert einzustellen.', 'sch.voltage': 'Spannung', 'sch.imax': 'Strombegrenzung', 'sch.nVdc': 'Verwendet einen Kanal des HMP2030 (höchstens 3). Der Pfeil zeigt von + nach −.', 'sch.wave': 'Kurvenform', 'sch.sine': 'Sinus', 'sch.square': 'Rechteck', 'sch.tri': 'Dreieck',
+  'sch.nVac': 'Verwendet den HMF. Sein −-Anschluss ist geerdet, wie die Masse des Oszilloskops.', 'sch.mode': 'Messung', 'sch.nAm': 'In Reihe: der +-Anschluss ist die A-Buchse des Multimeters.', 'sch.channel': 'Kanal', 'sch.nSc': 'Oberer Anschluss: Signal; unterer Anschluss: Kanalmasse (geerdet).', 'sch.nOa': 'Eingänge − und + links, Ausgang rechts, +V oben und −V unten.',
+  'sch.wOpen': '{n} nicht verbundene(r) Pin(s) (rote Kreise).', 'sch.eEmpty': 'Der Schaltplan ist leer.', 'sch.ePsu': 'Das HMP2030 hat nur 3 Kanäle: höchstens 3 Gleichspannungsquellen.', 'sch.eGen': 'Es gibt nur einen Funktionsgenerator.', 'sch.eDmm': 'Das Labor hat nur 2 Multimeter (Volt- + Ampere- + Ohmmeter).', 'sch.eScope': 'Jeder Oszilloskopkanal (CH1–CH4) kann nur einmal verwendet werden.',
+  'sch.eNets': 'Zu viele Knoten für das Hirschmann-Steckbrett.', 'sch.eSocks': 'Zu viele Knoten mit Geräten verbunden: das Steckbrett hat nur 10 Buchsen.', 'sch.eZone': 'Zu viele ICs und Potentiometer für das Steckbrett.', 'sch.eBoard': 'Die Schaltung passt nicht auf das Steckbrett.',
 });
 
 'use strict';
@@ -3616,6 +3688,776 @@ Object.assign(PB.I18N.de, {
 })();
 
 'use strict';
+/* PocketBench — theoretical schematics: bench → schematic (auto layout) and schematic editor → bench */
+(function () {
+  const t = (k, v) => PB.t(k, v);
+  const SUBD = '₀₁₂₃₄₅₆₇₈₉';
+  const sub = (s) => String(s).replace(/^([^\d]+)(\d+)$/, (m, a, d) => a + d.replace(/\d/g, (x) => SUBD[x]));
+  const val = (v, u) => PB.siShort(v, u).replace(/(\d)([^\d.\s])/, '$1 $2');
+  const SOURCES = new Set(['VDC', 'VAC', 'TTL']);
+  const METERS = new Set(['VM', 'AM', 'OM', 'SC']);
+  const BOARDP = new Set(['R', 'C', 'L', 'D', 'LED', 'Z', 'POT', 'OA']);
+
+  class UF {
+    constructor() { this.p = new Map(); }
+    f(k) { let p = this.p.get(k); if (p === undefined) { this.p.set(k, k); return k; } if (p === k) return k; const r = this.f(p); this.p.set(k, r); return r; }
+    u(a, b) { const ra = this.f(a), rb = this.f(b); if (ra === rb) return; if (rb === 'GND') this.p.set(ra, rb); else this.p.set(rb, ra); }
+  }
+
+  /* ================= symbols (local frame: pin0 at (−L/2,0), pin1 at (+L/2,0)) ================= */
+  function symbol(type, L, o) {
+    o = o || {};
+    const h = L / 2, ang = o.ang || 0;
+    const ln = (x1, y1, x2, y2, c) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"${c ? ` class="${c}"` : ''}/>`;
+    const leads = (b) => ln(-h, 0, -b, 0) + ln(b, 0, h, 0);
+    const txt = (s, x, y, size, cls) => `<text x="${x}" y="${y}" transform="rotate(${-ang} ${x} ${y})" class="sc ${cls || ''}" font-size="${size}">${s}</text>`;
+    const side = o.arrowSide || 1;
+    const arrow = (y) => `<path d="M-13,${y} L13,${y} M13,${y} l-6,-3.5 M13,${y} l-6,3.5" class="n"/>`;
+    switch (type) {
+      case 'R': return leads(18) + `<rect x="-18" y="-7" width="36" height="14" class="b"/>` + (o.pot ? `<path d="M-15,13 L15,-13 M15,-13 l-7,0.5 M15,-13 l-2,6.5" class="n"/>` : '');
+      case 'POT': return leads(18) + `<rect x="-18" y="-7" width="36" height="14" class="b"/>` + `<path d="M0,-${h} L0,-9 M0,-9 l-4,-7 M0,-9 l4,-7" class="n"/>`;
+      case 'C': return leads(4) + ln(-4, -13, -4, 13, 'th') + (o.elec ? `<path d="M6,-13 Q2,0 6,13" class="th n"/>` + txt('+', -11, -11, 11) : ln(4, -13, 4, 13, 'th'));
+      case 'L': return leads(20) + `<path d="M-20,0 a5,5 0 0 1 10,0 a5,5 0 0 1 10,0 a5,5 0 0 1 10,0 a5,5 0 0 1 10,0" class="n"/>`;
+      case 'D': case 'LED': case 'Z': {
+        let s = leads(8) + `<path d="M-8,-9 L8,0 L-8,9 Z" class="b"/>` + (type === 'Z' ? `<path d="M4,-12 L8,-9 L8,9 L12,12" class="n"/>` : ln(8, -10, 8, 10, 'th'));
+        if (type === 'LED') s += `<path d="M-1,-12 l6,-9 M5,-21 l-5,1.5 M5,-21 l-0.5,5 M6,-11 l6,-9 M12,-20 l-5,1.5 M12,-20 l-0.5,5" class="n"/>`;
+        return s;
+      }
+      case 'VDC': return leads(15) + `<circle r="15" class="b"/>` + ln(-15, 0, 15, 0) + arrow(26 * side);
+      case 'VAC': return leads(15) + `<circle r="15" class="b"/><path d="M-9,0 c3,-10 6,-10 9,0 c3,10 6,10 9,0" class="n"/>` + arrow(26 * side);
+      case 'TTL': return leads(15) + `<circle r="15" class="b"/><path d="M-9,5 L-9,-5 L0,-5 L0,5 L9,5 L9,-5" class="n"/>`;
+      case 'VM': case 'AM': case 'OM': {
+        const letter = { VM: 'V', AM: 'A', OM: 'Ω' }[type];
+        return leads(15) + `<circle r="15" class="b"/>` + txt(letter, 0, 1, 15, 'bold') + txt('+', -20, -10, 10);
+      }
+      case 'SC': return leads(17) + `<circle r="17" class="b"/><g transform="rotate(${-ang})"><text x="0" y="-5" class="sc bold" font-size="9.5">${o.ch || 'CH'}</text><path d="M-7,6 c2,-6 4.5,-6 7,0 c2,6 4.5,6 7,0" class="n"/></g>`;
+    }
+    return leads(10) + `<rect x="-10" y="-8" width="20" height="16" class="b"/>`;
+  }
+  function opampSym(ang) {
+    const txt = (s, x, y) => `<text x="${x}" y="${y}" transform="rotate(${-ang} ${x} ${y})" class="sc" font-size="13">${s}</text>`;
+    return `<path d="M-28,-30 L-28,30 L30,0 Z" class="b"/><line x1="-40" y1="-20" x2="-28" y2="-20"/><line x1="-40" y1="20" x2="-28" y2="20"/><line x1="30" y1="0" x2="40" y2="0"/><line x1="0" y1="-40" x2="0" y2="-15.5"/><line x1="0" y1="40" x2="0" y2="15.5"/>` + txt('−', -20, -19) + txt('+', -20, 21);
+  }
+  const gndSym = (x, y) => `<line x1="${x}" y1="${y}" x2="${x}" y2="${y + 10}"/><line x1="${x - 11}" y1="${y + 10}" x2="${x + 11}" y2="${y + 10}" class="th"/><line x1="${x - 7}" y1="${y + 15}" x2="${x + 7}" y2="${y + 15}" class="th"/><line x1="${x - 3}" y1="${y + 20}" x2="${x + 3}" y2="${y + 20}" class="th"/>`;
+  const STYLE = `<style>.sch line,.sch path,.sch circle,.sch rect{stroke:#14181c;stroke-width:1.7;fill:none;stroke-linecap:round;stroke-linejoin:round}.sch .b{fill:#fff}.sch .th{stroke-width:2.8}.sch .dot{fill:#14181c;stroke:none}.sch text{font-family:"IBM Plex Sans","Helvetica Neue",Arial,sans-serif;fill:#14181c;stroke:none}.sch .sc{text-anchor:middle;dominant-baseline:central}.sch .bold{font-weight:700}.sch .nm{font-weight:600;font-size:13px}.sch .vl{font-size:11.5px;fill:#3d4650}.sch .node{font-weight:700;font-size:13px;fill:#0b5cad}.sch .lbl{font-weight:600;font-size:12px;fill:#7a3e00}.sch .ttl{font-size:13px;fill:#5a6470}</style>`;
+
+  /* ================= bench → circuit model ================= */
+  function extract(app) {
+    const p = app.proj, D = app.devices, G = PB.boardGeom;
+    const uf = new UF();
+    for (let i = 0; i < 4; i++) uf.u('brd.L' + i, 'B:sL' + i);
+    for (let i = 0; i < 6; i++) uf.u('brd.R' + i, 'B:sR' + i);
+    for (const w of p.wires) uf.u(G.hole(w.a).node, G.hole(w.b).node);
+    for (const c of p.cables) { uf.u(c.a, c.b); if (c.kind === 'coaxban' && c.g) uf.u(c.g, 'GND'); }
+    for (const a of p.adapters) { uf.u(a.id + '.r', a.port); uf.u(a.id + '.k', 'GND'); }
+    for (let n = 1; n <= 3; n++) { uf.u(`hmp.ch${n}.sp`, `hmp.ch${n}.p`); uf.u(`hmp.ch${n}.sm`, `hmp.ch${n}.m`); }
+    uf.u('hmp.gnd', 'GND'); uf.f('GND');
+    const parts = [], owners = new Map();
+    const own = (key, who) => { const r = uf.f(key); if (!owners.has(r)) owners.set(r, new Set()); owners.get(r).add(who); };
+    // components
+    const cnt = {};
+    const nm = (pre) => { cnt[pre] = (cnt[pre] || 0) + 1; return pre + cnt[pre]; };
+    const comps = p.comps.slice().sort((a, b) => G.hole(a.pins[0]).x - G.hole(b.pins[0]).x);
+    for (const c of comps) {
+      const pins = c.pins.map((h) => G.hole(h).node);
+      pins.forEach((k) => own(k, c.id));
+      const base = { id: c.id, keys: pins };
+      if (c.type === 'R') parts.push({ ...base, type: 'R', name: nm('R'), val: val(c.v, 'Ω') });
+      else if (c.type === 'C') parts.push({ ...base, type: 'C', name: nm('C'), val: val(c.v, 'F'), elec: c.ckind === 'elec' });
+      else if (c.type === 'L') parts.push({ ...base, type: 'L', name: nm('L'), val: val(c.v, 'H') });
+      else if (c.type === 'D' || c.type === 'LED' || c.type === 'Z') parts.push({ ...base, type: c.type, name: nm(c.type === 'LED' ? 'LED' : 'D'), val: (PB.DIODES[c.model] || {}).label || c.model });
+      else if (c.type === 'POT') parts.push({ ...base, type: 'POT', name: nm('P'), val: val(c.v, 'Ω'), pos: c.pos });
+      else if (c.type === 'OA') parts.push({ id: c.id, type: 'OA', name: nm('AOP'), val: 'µA741', keys: [pins[1], pins[2], pins[5], pins[6], pins[3]] });
+    }
+    // instruments (only when both terminals are connected to something else)
+    const dev = [];
+    const s = D.hmp.state;
+    for (let n = 1; n <= 3; n++) { const c = s.ch[n - 1]; dev.push({ id: 'hmp' + n, type: 'VDC', keys: [`hmp.ch${n}.p`, `hmp.ch${n}.m`], name: 'U' + n, val: `${PB.siShort(c.v, 'V').replace(/(\d)V/, '$1 V')}`, note: `HMP CH${n}${s.on && s.out && c.sel ? '' : ' (off)'}` }); }
+    const g = D.hmf.state;
+    const gw = { sine: 'sinus', square: 'carré', triangle: 'triangle', pulse: 'impulsions', arb: 'arbitraire' }[g.wave];
+    dev.push({ id: 'gen', type: 'VAC', keys: ['gen.out', 'GND'], name: 'u(t)', val: `Û = ${val(g.ampl / 2, 'V')}, f = ${val(g.freq, 'Hz')}`, note: `${gw}${g.offOn && g.offset ? `, offset ${val(g.offset, 'V')}` : ''}${g.on && g.out ? '' : ' (off)'}` });
+    dev.push({ id: 'gtrig', type: 'TTL', keys: ['gen.trigout', 'GND'], name: 'u_TTL', val: 'TRIG OUT' });
+    for (const d of [D.dmm1, D.dmm2]) {
+      const f = d.state.fn, num = d.num;
+      const vk = { DCV: ['VM', 'DC V'], ACV: ['VM', 'AC V'], OHM: ['OM', 'Ω'], CAP: ['OM', 'CAP'], CONT: ['OM', 'Ω'], DIODE: ['OM', 'diode'], SENSOR: ['OM', 'sensor'], DCI: ['VM', 'V'], ACI: ['VM', 'V'] }[f];
+      dev.push({ id: d.id + 'v', type: vk[0], keys: [d.id + '.v', d.id + '.com'], name: (vk[0] === 'VM' ? 'V' : 'Ω') + num, val: `HMC #${num} · ${vk[1]}` });
+      dev.push({ id: d.id + 'a', type: 'AM', keys: [d.id + '.a', d.id + '.com'], name: 'A' + num, val: `HMC #${num} · ${f === 'ACI' ? 'AC' : 'DC'} I` });
+    }
+    for (let n = 1; n <= 4; n++) dev.push({ id: 'sc' + n, type: 'SC', keys: ['scope.ch' + n, 'GND'], name: 'CH' + n, val: 'HMO', ch: 'CH' + n });
+    const devOf = (id) => id.replace(/[av]$/, '');
+    for (const d of dev) d.keys.forEach((k) => { if (k !== 'GND') own(k, devOf(d.id) + ':' + k); });
+    const others = (k, dv) => { const r = uf.f(k); if (r === 'GND') return true; const o = owners.get(r); return !!o && [...o].some((x) => x.split(':')[0] !== dv); };
+    for (const d of dev) {
+      const dv = devOf(d.id);
+      if (!d.keys.every((k) => others(k, dv))) continue;
+      if ((d.type === 'VAC' || d.type === 'TTL' || d.type === 'SC') && uf.f(d.keys[0]) === 'GND') continue;
+      parts.push(d);
+    }
+    // nets
+    for (const pt of parts) pt.pins = pt.keys.map((k) => uf.f(k));
+    const used = new Set(parts.flatMap((pt) => pt.pins));
+    // drop dmm pairs that only touch each other (com shared) — keep if they reach other parts
+    const nets = new Map();
+    for (const n of used) nets.set(n, { id: n, earth: n === 'GND' });
+    return { nets, parts };
+  }
+
+  /* ================= ladder auto-layout ================= */
+  const W = 136, VU = 92, BR = 72, OAW = 200;
+  function layout(circ) {
+    // expand potentiometers
+    let parts = [];
+    for (const p of circ.parts) {
+      if (p.type === 'POT') {
+        const [a, w, b] = p.pins;
+        if (w === a || w === b) parts.push({ ...p, type: 'R', pot: true, pins: [a, b] });
+        else { parts.push({ ...p, id: p.id + 'a', type: 'R', pins: [a, w], name: p.name + 'a', val: p.val }); parts.push({ ...p, id: p.id + 'b', type: 'R', pins: [w, b], name: p.name + 'b', val: '' }); }
+      } else parts.push(p);
+    }
+    // connected groups
+    const uf = new UF();
+    parts.forEach((p) => p.pins.forEach((n) => uf.u(p.pins[0], n)));
+    const groups = new Map();
+    for (const p of parts) { const r = uf.f(p.pins[0]); if (!groups.has(r)) groups.set(r, []); groups.get(r).push(p); }
+    const out = { prims: [], names: new Map() };
+    let ox = 0, letter = 0;
+    const nextName = () => { const s = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'; const n = s[letter % 26] + (letter >= 26 ? Math.floor(letter / 26) : ''); letter++; return n; };
+    for (const gp of groups.values()) {
+      const r = layoutGroup(gp, circ.nets, nextName);
+      const dx = ox - r.bb.x0;
+      for (const pr of r.prims) shift(pr, dx);
+      out.prims.push(...r.prims);
+      ox += (r.bb.x1 - r.bb.x0) + 140;
+    }
+    out.bb = bbox(out.prims);
+    return out;
+  }
+  function shift(pr, dx) { for (const k of ['x', 'x1', 'x2']) if (pr[k] !== undefined) pr[k] += dx; }
+  function bbox(prims) {
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    const add = (x, y) => { x0 = Math.min(x0, x); y0 = Math.min(y0, y); x1 = Math.max(x1, x); y1 = Math.max(y1, y); };
+    for (const p of prims) {
+      if (p.t === 'oa') { add(p.x1, p.y - 75); add(p.x2, p.y + 75); continue; }
+      if (p.x1 !== undefined) { add(p.x1, p.y1); add(p.x2, p.y2); }
+      if (p.x !== undefined) { add(p.x - 30, p.y - 30); add(p.x + 30, p.y + 30); }
+    }
+    if (x0 === Infinity) return { x0: 0, y0: 0, x1: 100, y1: 100 };
+    return { x0, y0, x1, y1 };
+  }
+  function layoutGroup(parts, netInfo, nextName) {
+    const nets = [...new Set(parts.flatMap((p) => p.pins))];
+    const two = parts.filter((p) => p.type !== 'OA'), oas = parts.filter((p) => p.type === 'OA');
+    // reference net
+    let ref = nets.find((n) => netInfo.get(n) && netInfo.get(n).earth);
+    if (!ref) { const s = two.find((p) => p.type === 'VDC' || p.type === 'VAC'); ref = s ? s.pins[1] : null; }
+    const deg = new Map(); const inc = (n) => deg.set(n, (deg.get(n) || 0) + 1);
+    two.forEach((p) => p.pins.forEach(inc)); oas.forEach((o) => o.pins.slice(0, 3).forEach(inc));
+    if (!ref) ref = nets.slice().sort((a, b) => (deg.get(b) || 0) - (deg.get(a) || 0))[0];
+    const labelNets = new Map();
+    for (const o of oas) { const [m, pl, ot, vp, vn] = o.pins; if (vp !== ref && vp !== m && vp !== pl && vp !== ot) labelNets.set(vp, labelNets.get(vp) || '+V'); if (vn !== ref && vn !== m && vn !== pl && vn !== ot) labelNets.set(vn, labelNets.get(vn) || '−V'); }
+    const forced = new Set(); oas.forEach((o) => o.pins.slice(0, 3).forEach((n) => { if (n !== ref && !labelNets.has(n)) forced.add(n); }));
+    const anchors = new Set(nets.filter((n) => n !== ref && !labelNets.has(n) && ((deg.get(n) || 0) !== 2 || forced.has(n))));
+    const adj = new Map(); two.forEach((p) => p.pins.forEach((n, i) => { if (!adj.has(n)) adj.set(n, []); adj.get(n).push({ p, other: p.pins[1 - i], i }); }));
+    const build = () => {
+      const term = (n) => n === ref || anchors.has(n) || labelNets.has(n);
+      const used = new Set(), chains = [];
+      for (const T of [...anchors, ref, ...labelNets.keys()]) for (const e of adj.get(T) || []) {
+        if (used.has(e.p)) continue;
+        const ch = { a: T, items: [{ p: e.p, fwd: e.i === 0 }], nets: [] }; used.add(e.p);
+        let cur = e.other;
+        while (!term(cur)) { const nx = (adj.get(cur) || []).find((x) => !used.has(x.p)); if (!nx) break; ch.nets.push(cur); ch.items.push({ p: nx.p, fwd: nx.i === 0 }); used.add(nx.p); cur = nx.other; }
+        ch.b = cur; chains.push(ch);
+      }
+      return { chains, left: two.filter((p) => !used.has(p)) };
+    };
+    let chains = [];
+    for (let it = 0; it < 30; it++) {
+      const r = build();
+      if (r.left.length) { const p = r.left[0]; anchors.add(p.pins[0] !== ref ? p.pins[0] : p.pins[1]); continue; }
+      const bad = r.chains.find((c) => c.a === c.b && c.nets.length);
+      if (bad) { const si = bad.items.findIndex((x) => SOURCES.has(x.p.type)); anchors.add(si > 0 ? bad.nets[si - 1] : bad.nets[0]); continue; }
+      chains = r.chains; break;
+    }
+    const rev = (c) => ({ a: c.b, b: c.a, items: c.items.slice().reverse().map((x) => ({ p: x.p, fwd: !x.fwd })), nets: c.nets.slice().reverse() });
+    const shunts = new Map(), tops = [], supply = [];
+    const pushS = (a, c) => { if (!shunts.has(a)) shunts.set(a, []); shunts.get(a).push(c); };
+    for (const c of chains) {
+      const la = labelNets.has(c.a), lb = labelNets.has(c.b);
+      if (la || lb) { if (anchors.has(c.a)) pushS(c.a, { ...c, toLabel: true }); else if (anchors.has(c.b)) pushS(c.b, { ...rev(c), toLabel: true }); else supply.push(la ? c : rev(c)); continue; }
+      if (c.a === c.b) { pushS(c.a, c); continue; }
+      if (c.b === ref) pushS(c.a, c); else if (c.a === ref) pushS(c.b, rev(c)); else tops.push(c);
+    }
+    const hasSrc = (c) => c.items.some((x) => SOURCES.has(x.p.type));
+    const A = [...anchors];
+    const start = A.find((a) => (shunts.get(a) || []).some(hasSrc)) || A.find((a) => (shunts.get(a) || []).length) || A[0];
+    // anchor graph
+    const nbr = new Map(); const addE = (a, b, w, kind, obj) => { if (!nbr.has(a)) nbr.set(a, []); nbr.get(a).push({ to: b, w, kind, obj }); };
+    tops.forEach((c) => { addE(c.a, c.b, c.items.length, 'ch', c); addE(c.b, c.a, c.items.length, 'ch', c); });
+    const oaMain = new Map();
+    oas.forEach((o) => { const mi = anchors.has(o.pins[0]) ? 0 : 1; oaMain.set(o, mi); const inN = o.pins[mi], ot = o.pins[2]; if (anchors.has(inN) && anchors.has(ot)) { addE(inN, ot, 0, 'oa', o); addE(ot, inN, 0, 'oa', o); } });
+    const order = [], seen = new Set();
+    const dfs = (a) => { seen.add(a); order.push(a); const ns = (nbr.get(a) || []).slice().sort((x, y) => (x.kind === 'oa' ? 0 : 1) - (y.kind === 'oa' ? 0 : 1) || x.w - y.w); for (const n of ns) if (!seen.has(n.to)) dfs(n.to); };
+    if (start !== undefined) dfs(start);
+    for (const a of A) if (!seen.has(a)) dfs(a);
+    // plan
+    const usedLinks = new Set();
+    const plan = order.map((a, i) => {
+      const sh = (shunts.get(a) || []).slice();
+      let main = null;
+      if (a === start) { const k = sh.findIndex(hasSrc); if (k >= 0) main = sh.splice(k, 1)[0]; }
+      sh.sort((x, y) => (hasSrc(y) ? 1 : 0) - (hasSrc(x) ? 1 : 0) || x.items.length - y.items.length);
+      let link = null;
+      const nx = order[i + 1];
+      if (nx !== undefined) {
+        const e = (nbr.get(a) || []).find((x) => x.to === nx && x.kind === 'oa' && !usedLinks.has(x.obj)) || (nbr.get(a) || []).find((x) => x.to === nx && !usedLinks.has(x.obj));
+        if (e) { usedLinks.add(e.obj); link = e.kind === 'oa' ? { oa: e.obj } : { ch: e.obj.a === a ? e.obj : rev(e.obj) }; }
+      }
+      let lr = null;
+      if (!link) { const k = sh.map((c, j) => [c, j]).filter(([c]) => !hasSrc(c) && !c.toLabel && c.items.length >= 2).sort((x, y) => y[0].items.length - x[0].items.length)[0]; if (k) lr = sh.splice(k[1], 1)[0]; }
+      return { a, main, verts: sh, link, lr };
+    });
+    const bridges = tops.filter((c) => !usedLinks.has(c));
+    const oaFloat = oas.filter((o) => !usedLinks.has(o));
+    // stack height
+    let maxN = 1;
+    for (const P of plan) {
+      if (P.main) { const si = Math.max(0, P.main.items.findIndex((x) => SOURCES.has(x.p.type) || METERS.has(x.p.type))); maxN = Math.max(maxN, P.main.items.length - si); }
+      for (const c of P.verts) maxN = Math.max(maxN, c.items.length);
+    }
+    for (const c of supply) maxN = Math.max(maxN, c.items.length);
+    const H = maxN * VU;
+    // emit
+    const prims = []; const pos = new Map(); const rail = []; const names = new Map();
+    const node = (n, x, y) => { if (!pos.has(n)) pos.set(n, { x, y }); };
+    const part = (it, x1, y1, x2, y2) => prims.push({ t: 'part', p: it.p, fwd: it.fwd, x1, y1, x2, y2 });
+    const wire = (x1, y1, x2, y2) => { if (x1 !== x2 || y1 !== y2) prims.push({ t: 'wire', x1, y1, x2, y2 }); };
+    const stack = (c, x, y0, y1, endLabel) => {
+      const n = c.items.length, seg = (y1 - y0) / n;
+      c.items.forEach((it, j) => part(it, x, y0 + j * seg, x, y0 + (j + 1) * seg));
+      c.nets.forEach((nn, j) => node(nn, x, y0 + (j + 1) * seg));
+      if (endLabel) prims.push({ t: 'label', x, y: y1 + 14, text: endLabel });
+      else if (c.b === ref) rail.push(x);
+    };
+    let cursor = 0;
+    const X = new Map();
+    for (const P of plan) {
+      let xA, colFree = true;
+      if (P.main) {
+        const items = P.main.items; let si = items.findIndex((x) => SOURCES.has(x.p.type) || METERS.has(x.p.type)); if (si < 0) si = items.length - 1;
+        const hI = items.slice(0, si), vI = items.slice(si);
+        const x0 = cursor; xA = x0 + hI.length * W;
+        hI.forEach((it, j) => part(it, xA - j * W, 0, xA - (j + 1) * W, 0));
+        P.main.nets.forEach((nn, j) => { if (j < hI.length) node(nn, xA - (j + 1) * W, 0); });
+        stack({ items: vI, nets: P.main.nets.slice(hI.length), b: P.main.b }, x0, 0, H);
+        colFree = hI.length > 0;
+      } else xA = cursor;
+      X.set(P.a, xA); node(P.a, xA, 0);
+      let vx = colFree ? xA : xA + W;
+      for (const c of P.verts) {
+        if (c.toLabel) stack(c, vx, 0, Math.min(H, c.items.length * VU), labelNets.get(c.b));
+        else if (c.a === c.b) { /* loop on itself: draw as stack back up */ stack({ ...c, b: null }, vx, 0, H * 0.6, names.get(c.a) || ''); }
+        else stack(c, vx, 0, H);
+        vx += W;
+      }
+      let xE = Math.max(xA, vx - W);
+      wire(xA, 0, xE, 0);
+      if (P.lr) {
+        const it = P.lr.items, hI = it.slice(0, -1);
+        hI.forEach((x, j) => part(x, xE + j * W, 0, xE + (j + 1) * W, 0));
+        P.lr.nets.forEach((nn, j) => node(nn, xE + (j + 1) * W, 0));
+        const xc = xE + hI.length * W;
+        stack({ items: [it[it.length - 1]], nets: [], b: P.lr.b }, xc, 0, H);
+        xE = xc;
+      }
+      if (P.link && P.link.ch) { const c = P.link.ch; c.items.forEach((it, j) => part(it, xE + j * W, 0, xE + (j + 1) * W, 0)); c.nets.forEach((nn, j) => node(nn, xE + (j + 1) * W, 0)); cursor = xE + c.items.length * W; }
+      else if (P.link && P.link.oa) { prims.push({ t: 'oa', o: P.link.oa, main: oaMain.get(P.link.oa), x1: xE, x2: xE + OAW, y: 0 }); cursor = xE + OAW; }
+      else cursor = xE + W * 1.1;
+    }
+    // supply chains (label ↔ ref / label ↔ label)
+    for (const c of supply) {
+      const x = cursor; cursor += W;
+      prims.push({ t: 'label', x, y: -14, text: labelNets.get(c.a) });
+      if (c.b === ref) stack(c, x, 0, H); else stack(c, x, 0, H, labelNets.get(c.b));
+    }
+    // floating op-amps (inputs not on the main line)
+    for (const o of oaFloat) { prims.push({ t: 'oa', o, main: oaMain.get(o), x1: cursor, x2: cursor + OAW, y: 0, floating: true }); cursor += OAW + W * 0.5; }
+    // bridges
+    const levels = [];
+    bridges.sort((a, b) => Math.abs(X.get(a.a) - X.get(a.b)) - Math.abs(X.get(b.a) - X.get(b.b)));
+    for (const c0 of bridges) {
+      let c = c0; let xa = X.get(c.a), xb = X.get(c.b);
+      if (xa > xb) { c = rev(c); [xa, xb] = [xb, xa]; }
+      if (xa === xb) xb = xa + W;
+      let L = 1; while (levels.some((l) => l.L === L && !(xb < l.a || xa > l.b))) L++;
+      levels.push({ L, a: xa, b: xb });
+      const y = -L * BR;
+      wire(xa, 0, xa, y); wire(xb, 0, xb, y);
+      const k = c.items.length, sp = (xb - xa) / k;
+      c.items.forEach((it, j) => part(it, xa + j * sp, y, xa + (j + 1) * sp, y));
+      c.nets.forEach((nn, j) => node(nn, xa + (j + 1) * sp, y));
+    }
+    // reference rail + earth symbol
+    if (rail.length) {
+      const r0 = Math.min(...rail), r1 = Math.max(...rail);
+      wire(r0, H, r1, H);
+      node(ref, r0, H);
+      if (netInfo.get(ref) && netInfo.get(ref).earth) prims.push({ t: 'gnd', x: r0 + Math.min(W / 2, (r1 - r0) / 2 || 0), y: H });
+    }
+    // names: anchors and visible intermediate nodes, in left-to-right order
+    const named = [...pos.entries()].filter(([n]) => !(n === ref && netInfo.get(ref) && netInfo.get(ref).earth)).sort((a, b) => a[1].x - b[1].x || a[1].y - b[1].y);
+    for (const [n, p] of named) { const nm = nextName(); names.set(n, nm); prims.push({ t: 'node', x: p.x, y: p.y, text: nm, below: p.y >= H - 1 && p.y > 0 }); }
+    for (const pr of prims) if (pr.t === 'oa') pr.names = names, pr.ref = ref, pr.labelNets = labelNets, pr.earth = !!(netInfo.get(ref) && netInfo.get(ref).earth);
+    // junction dots
+    dots(prims);
+    return { prims, bb: bbox(prims) };
+  }
+  function dots(prims) {
+    const pts = new Map(); const key = (x, y) => Math.round(x) + ',' + Math.round(y);
+    const segs = [];
+    const add = (x, y) => { const k = key(x, y); pts.set(k, (pts.get(k) || 0) + 1); };
+    for (const p of prims) if (p.t === 'wire' || p.t === 'part') { add(p.x1, p.y1); add(p.x2, p.y2); segs.push(p); }
+    for (const p of prims) if (p.t === 'oa') { add(p.x1, p.y); }
+    for (const [k, n] of pts) {
+      const [x, y] = k.split(',').map(Number);
+      let d = n;
+      for (const s of segs) {
+        if (s.t !== 'wire') continue;
+        const inX = s.y1 === s.y2 && Math.abs(s.y1 - y) < 0.5 && x > Math.min(s.x1, s.x2) + 0.5 && x < Math.max(s.x1, s.x2) - 0.5;
+        const inY = s.x1 === s.x2 && Math.abs(s.x1 - x) < 0.5 && y > Math.min(s.y1, s.y2) + 0.5 && y < Math.max(s.y1, s.y2) - 0.5;
+        if (inX || inY) d += 2;
+      }
+      if (d >= 3) prims.push({ t: 'dot', x, y });
+    }
+  }
+
+  /* ================= SVG rendering ================= */
+  function partSVG(p, x1, y1, x2, y2, fwd, extra) {
+    const dx = x2 - x1, dy = y2 - y1, L = Math.hypot(dx, dy) || 80, cx = (x1 + x2) / 2, cy = (y1 + y2) / 2;
+    let ang = Math.round(Math.atan2(dy, dx) * 180 / Math.PI); if (!fwd) ang += 180; ang = ((ang % 360) + 360) % 360;
+    const side = (ang === 90 || ang === 180) ? 1 : -1;
+    let s = `<g transform="translate(${cx},${cy}) rotate(${ang})">${symbol(p.type, L, { ang, elec: p.elec, pot: p.pot, ch: p.ch, arrowSide: side })}</g>`;
+    const vert = Math.abs(dx) < 1;
+    const nm = sub(p.name || ''), v = p.val || '';
+    const off = SOURCES.has(p.type) || METERS.has(p.type) ? 22 : 18;
+    if (vert) s += `<text x="${cx + off + 4}" y="${cy - (v ? 6 : 0)}" class="nm" dominant-baseline="central">${PB.esc(nm)}</text>` + (v ? `<text x="${cx + off + 4}" y="${cy + 10}" class="vl" dominant-baseline="central">${PB.esc(v)}</text>` : '') + (p.note ? `<text x="${cx + off + 4}" y="${cy + 24}" class="vl" dominant-baseline="central">${PB.esc(p.note)}</text>` : '');
+    else s += `<text x="${cx}" y="${cy - off - 6}" class="nm sc">${PB.esc(nm)}</text>` + (v ? `<text x="${cx}" y="${cy + off + 8}" class="vl sc">${PB.esc(v)}</text>` : '') + (p.note ? `<text x="${cx}" y="${cy + off + 22}" class="vl sc">${PB.esc(p.note)}</text>` : '');
+    return s + (extra || '');
+  }
+  function oaSVG(pr) {
+    const o = pr.o, main = pr.main, cy = main === 0 ? 20 : -20;
+    const cx = pr.x1 + 70;
+    let s = wire(pr.x1, 0, cx - 40, 0);
+    s += `<g transform="translate(${cx},${pr.y + cy})">${opampSym(0)}</g>`;
+    const outY = pr.y + cy;
+    if (!pr.floating) s += wire(cx + 40, outY, pr.x2, outY) + wire(pr.x2, outY, pr.x2, 0); else s += wire(cx + 40, outY, cx + 60, outY) + tag(cx + 66, outY, pr.names.get(o.pins[2]), 'start');
+    if (pr.floating) s += wire(cx - 40, pr.y + cy + (main === 0 ? -20 : 20), cx - 56, pr.y + cy + (main === 0 ? -20 : 20)) + tag(cx - 60, pr.y + cy + (main === 0 ? -20 : 20), pr.names.get(o.pins[main]), 'end');
+    const other = 1 - main, oy = pr.y + cy + (other === 0 ? -20 : 20), on = o.pins[other];
+    if (on === pr.ref) { s += wire(cx - 40, oy, cx - 52, oy) + wire(cx - 52, oy, cx - 52, oy + 8) + (pr.earth ? gndSym(cx - 52, oy + 8) : tag(cx - 52, oy + 18, pr.names.get(on) || '0 V', 'middle')); }
+    else s += wire(cx - 40, oy, cx - 56, oy) + tag(cx - 60, oy, pr.names.get(on) || pr.labelNets.get(on) || '?', 'end');
+    const sup = (n, y, up) => n === pr.ref ? (pr.earth ? gndSym(cx, y) : tag(cx, y + 12, '0 V', 'middle')) : tag(cx, y + (up ? -8 : 12), pr.labelNets.get(n) || pr.names.get(n) || '?', 'middle');
+    s += sup(o.pins[3], pr.y + cy - 40, true) + sup(o.pins[4], pr.y + cy + 40, false);
+    s += `<text x="${cx + 10}" y="${pr.y + cy - 34}" class="nm" dominant-baseline="central">${PB.esc(sub(o.name))}</text>`;
+    return s;
+  }
+  const wire = (x1, y1, x2, y2) => `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"/>`;
+  const tag = (x, y, text, anchor) => `<text x="${x}" y="${y}" class="lbl" text-anchor="${anchor}" dominant-baseline="central">${PB.esc(text || '')}</text>`;
+  function renderSVG(L, title) {
+    const pad = 70, b = L.bb;
+    const x0 = b.x0 - pad - 40, y0 = b.y0 - pad - 20, w = b.x1 - b.x0 + 2 * pad + 120, h = b.y1 - b.y0 + 2 * pad + 60;
+    let s = `<svg xmlns="http://www.w3.org/2000/svg" class="sch" viewBox="${x0} ${y0} ${w} ${h}" width="${Math.round(w)}" height="${Math.round(h)}">${STYLE}<rect x="${x0}" y="${y0}" width="${w}" height="${h}" style="fill:#fff;stroke:none"/>`;
+    if (title) s += `<text x="${x0 + 18}" y="${y0 + 22}" class="ttl">${PB.esc(title)}</text>`;
+    for (const p of L.prims) {
+      if (p.t === 'wire') s += wire(p.x1, p.y1, p.x2, p.y2);
+      else if (p.t === 'part') s += partSVG(p.p, p.x1, p.y1, p.x2, p.y2, p.fwd);
+      else if (p.t === 'oa') s += oaSVG(p);
+      else if (p.t === 'gnd') s += wire(p.x, p.y, p.x, p.y + 8) + gndSym(p.x, p.y + 8);
+      else if (p.t === 'label') s += tag(p.x, p.y, p.text, 'middle');
+    }
+    for (const p of L.prims) if (p.t === 'dot') s += `<circle cx="${p.x}" cy="${p.y}" r="3.4" class="dot"/>`;
+    for (const p of L.prims) if (p.t === 'node') s += `<text x="${p.x - 7}" y="${p.below ? p.y + 16 : p.y - 10}" class="node" text-anchor="end">${PB.esc(p.text)}</text>`;
+    return s + '</svg>';
+  }
+
+  /* ================= schematic editor ================= */
+  const GRID = 20;
+  const TWO = new Set(['R', 'C', 'L', 'D', 'LED', 'Z', 'VDC', 'VAC', 'VM', 'AM', 'OM', 'SC']);
+  const PINS = { two: [[-40, 0], [40, 0]], POT: [[-40, 0], [0, -40], [40, 0]], OA: [[-40, -20], [-40, 20], [40, 0], [0, -40], [0, 40]], GND: [[0, 0]] };
+  const DEFAULTS = { R: { v: 1000 }, C: { v: 100e-9 }, L: { v: 10e-3 }, D: { model: '1N4148' }, LED: { model: 'LED-R' }, Z: { model: 'ZD5V1' }, POT: { v: 10000, pos: 0.5 }, OA: {}, VDC: { u: 5, imax: 0.1 }, VAC: { wave: 'sine', amp: 1, f: 1000, off: 0 }, VM: { mode: 'DC' }, AM: { mode: 'DC' }, OM: {}, SC: { ch: 0 }, GND: {} };
+  const PREFIX = { R: 'R', C: 'C', L: 'L', D: 'D', LED: 'LED', Z: 'Dz', POT: 'P', OA: 'AOP', VDC: 'U', VAC: 'u', VM: 'V', AM: 'A', OM: 'Ω', SC: 'CH', GND: '' };
+  const rot = (x, y, r) => (r === 90 ? [-y, x] : r === 180 ? [-x, -y] : r === 270 ? [y, -x] : [x, y]);
+  const pinTpl = (type) => (TWO.has(type) ? PINS.two : PINS[type]);
+  const pinsAbs = (p) => pinTpl(p.type).map(([x, y]) => { const [a, b] = rot(x, y, p.rot); return [p.x + a, p.y + b]; });
+  const snap = (v) => Math.round(v / GRID) * GRID;
+
+  class Editor {
+    constructor(app, host) {
+      this.app = app; this.host = host;
+      if (!app.proj.schem) app.proj.schem = { parts: [], wires: [] };
+      this.tool = 'select'; this.toolRot = 0; this.sel = null; this.wstart = null; this.mouse = null; this.zoom = 1;
+      this.build();
+    }
+    get S() { return this.app.proj.schem; }
+    build() {
+      const pal = [['select', '⬚', 'sch.tSelect'], ['wire', '╱', 'sch.tWire'], ['R', 'R'], ['C', 'C'], ['L', 'L'], ['D', 'D'], ['LED', 'LED'], ['Z', 'Z'], ['POT', 'P'], ['OA', 'AOP'], ['VDC', 'U='], ['VAC', 'u~'], ['GND', '⏚'], ['VM', 'V'], ['AM', 'A'], ['OM', 'Ω'], ['SC', 'CH']];
+      this.host.innerHTML = `<div class="ed-pal">${pal.map(([k, ic, lab]) => `<button type="button" class="ed-tool" data-tool="${k}" title="${PB.esc(lab ? t(lab) : t('sch.p.' + k))}"><span class="ic">${ic}</span><span>${PB.esc(lab ? t(lab) : t('sch.p.' + k))}</span></button>`).join('')}</div>
+        <div class="ed-main"><div class="ed-bar"><button type="button" class="btn" data-ed="rot">⟳ ${t('sch.rotate')} (R)</button><button type="button" class="btn" data-ed="del">${t('sel.delete')} (Suppr)</button><button type="button" class="btn" data-ed="clear">${t('sch.clear')}</button><span class="sp"></span><button type="button" class="btn" data-ed="zout">−</button><button type="button" class="btn" data-ed="zin">+</button></div>
+        <div class="ed-canvas"><svg class="ed-svg sch" xmlns="http://www.w3.org/2000/svg"></svg></div><div class="ed-hint" id="edHint"></div></div>
+        <div class="ed-props"><h4>${t('side.sel')}</h4><div id="edProps"></div><div class="ed-msg" id="edMsg"></div></div>`;
+      this.svg = this.host.querySelector('.ed-svg'); this.canvas = this.host.querySelector('.ed-canvas');
+      this.host.querySelector('.ed-pal').addEventListener('click', (e) => { const b = e.target.closest('[data-tool]'); if (b) this.setTool(b.dataset.tool); });
+      this.host.querySelector('.ed-bar').addEventListener('click', (e) => { const b = e.target.closest('[data-ed]'); if (!b) return; const a = b.dataset.ed; if (a === 'rot') this.rotate(); if (a === 'del') this.del(); if (a === 'clear' && confirm(t('sch.confirmClear'))) { this.S.parts = []; this.S.wires = []; this.sel = null; this.changed(); } if (a === 'zin') this.setZoom(this.zoom * 1.2); if (a === 'zout') this.setZoom(this.zoom / 1.2); });
+      this.svg.addEventListener('pointerdown', (e) => this.down(e));
+      this.svg.addEventListener('pointermove', (e) => this.move(e));
+      this.svg.addEventListener('dblclick', () => { this.wstart = null; this.render(); });
+      this.svg.addEventListener('contextmenu', (e) => { e.preventDefault(); if (this.wstart) this.wstart = null; else this.setTool('select'); this.render(); });
+      this.setZoom(1); this.setTool('select');
+    }
+    setZoom(z) { this.zoom = PB.clamp(z, 0.4, 2.5); this.svg.setAttribute('width', 2200 * this.zoom); this.svg.setAttribute('height', 1400 * this.zoom); this.svg.setAttribute('viewBox', '0 0 2200 1400'); }
+    setTool(tl) { this.tool = tl; this.wstart = null; if (tl !== 'select') this.sel = null; this.toolRot = ['VDC', 'VAC', 'VM', 'SC'].includes(tl) ? 90 : 0; this.host.querySelectorAll('[data-tool]').forEach((b) => b.classList.toggle('on', b.dataset.tool === tl)); $hint(this, tl === 'wire' ? t('sch.hWire') : tl === 'select' ? t('sch.hSelect') : t('sch.hPlace')); this.render(); }
+    pt(e) { const p = this.svg.createSVGPoint(); p.x = e.clientX; p.y = e.clientY; const q = p.matrixTransform(this.svg.getScreenCTM().inverse()); return { x: q.x, y: q.y }; }
+    changed() { this.app.markSave(); this.render(); this.validate(); }
+    hitPart(q) { for (let i = this.S.parts.length - 1; i >= 0; i--) { const p = this.S.parts[i]; const r = p.type === 'OA' ? 42 : p.type === 'GND' ? 18 : 30; if (Math.abs(q.x - p.x) < r + 8 && Math.abs(q.y - p.y) < r) return p; } return null; }
+    hitWire(q) { for (const w of this.S.wires) { const d = distSeg(q.x, q.y, w); if (d < 6) return w; } return null; }
+    isPinPoint(x, y) { return this.S.parts.some((p) => pinsAbs(p).some(([a, b]) => a === x && b === y)); }
+    down(e) {
+      if (e.button !== 0) return;
+      const q = this.pt(e), sx = snap(q.x), sy = snap(q.y);
+      if (this.tool === 'wire') {
+        if (!this.wstart) { this.wstart = { x: sx, y: sy }; this.render(); return; }
+        const a = this.wstart;
+        if (a.x === sx && a.y === sy) { this.wstart = null; this.render(); return; }
+        const segs = a.x === sx || a.y === sy ? [[a.x, a.y, sx, sy]] : [[a.x, a.y, sx, a.y], [sx, a.y, sx, sy]];
+        const joins = this.isPinPoint(sx, sy) || this.S.wires.some((w) => inside(sx, sy, w) || (w.x1 === sx && w.y1 === sy) || (w.x2 === sx && w.y2 === sy));
+        for (const [x1, y1, x2, y2] of segs) this.S.wires.push({ id: PB.uid('sw'), x1, y1, x2, y2 });
+        this.wstart = joins ? null : { x: sx, y: sy };
+        this.changed(); return;
+      }
+      if (this.tool !== 'select') {
+        const p = { id: PB.uid('sp'), type: this.tool, x: sx, y: sy, rot: this.toolRot, props: JSON.parse(JSON.stringify(DEFAULTS[this.tool] || {})) };
+        this.S.parts.push(p); this.sel = { kind: 'part', id: p.id }; this.changed(); this.props(); return;
+      }
+      const hp = this.hitPart(q);
+      if (hp) {
+        this.sel = { kind: 'part', id: hp.id }; this.props();
+        const ox = hp.x, oy = hp.y, start = q, oldPins = pinsAbs(hp);
+        const mv = (ev) => {
+          const r = this.pt(ev); const nx = snap(ox + r.x - start.x), ny = snap(oy + r.y - start.y);
+          if (nx === hp.x && ny === hp.y) return;
+          const before = pinsAbs(hp); hp.x = nx; hp.y = ny; const after = pinsAbs(hp);
+          for (const w of this.S.wires) before.forEach(([bx, by], i) => { if (w.x1 === bx && w.y1 === by) { w.x1 = after[i][0]; w.y1 = after[i][1]; } if (w.x2 === bx && w.y2 === by) { w.x2 = after[i][0]; w.y2 = after[i][1]; } });
+          this.render();
+        };
+        const up = () => { window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up); this.changed(); };
+        window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
+        this.render(); return;
+      }
+      const hw = this.hitWire(q);
+      this.sel = hw ? { kind: 'wire', id: hw.id } : null;
+      this.props(); this.render();
+    }
+    move(e) { this.mouse = this.pt(e); if (this.tool !== 'select' || this.wstart) this.render(); }
+    rotate() {
+      if (this.tool !== 'select' && this.tool !== 'wire') { this.toolRot = (this.toolRot + 90) % 360; this.render(); return; }
+      const p = this.sel && this.sel.kind === 'part' && this.S.parts.find((x) => x.id === this.sel.id);
+      if (p && p.type !== 'GND') { p.rot = (p.rot + 90) % 360; this.changed(); }
+    }
+    del() {
+      if (!this.sel) return;
+      if (this.sel.kind === 'part') this.S.parts = this.S.parts.filter((x) => x.id !== this.sel.id); else this.S.wires = this.S.wires.filter((x) => x.id !== this.sel.id);
+      this.sel = null; this.props(); this.changed();
+    }
+    key(e) {
+      const tag = (e.target.tagName || '').toLowerCase(); if (tag === 'input' || tag === 'select') return false;
+      if (e.key === 'r' || e.key === 'R') { this.rotate(); return true; }
+      if (e.key === 'Delete' || e.key === 'Backspace') { this.del(); return true; }
+      if (e.key === 'Escape') { if (this.wstart) { this.wstart = null; this.render(); this._esc = true; return true; } if (this.tool !== 'select') { this.setTool('select'); this._esc = true; return true; } return false; }
+      if (e.key === 'w' || e.key === 'W') { this.setTool('wire'); return true; }
+      return false;
+    }
+    names() { const cnt = {}, m = new Map(); for (const p of this.S.parts) { if (p.type === 'GND') continue; if (p.type === 'SC') { m.set(p.id, 'CH' + ((p.props.ch || 0) || '?')); continue; } cnt[p.type] = (cnt[p.type] || 0) + 1; m.set(p.id, PREFIX[p.type] + cnt[p.type]); } return m; }
+    valueText(p) {
+      const q = p.props;
+      switch (p.type) {
+        case 'R': return val(q.v, 'Ω'); case 'C': return val(q.v, 'F'); case 'L': return val(q.v, 'H'); case 'POT': return val(q.v, 'Ω');
+        case 'D': case 'LED': case 'Z': return (PB.DIODES[q.model] || {}).label || q.model;
+        case 'VDC': return val(q.u, 'V'); case 'VAC': return `Û = ${val(q.amp, 'V')}, f = ${val(q.f, 'Hz')}`;
+        case 'VM': case 'AM': return q.mode; default: return '';
+      }
+    }
+    render() {
+      const S = this.S, names = this.names();
+      let s = STYLE + `<defs><pattern id="edg" width="${GRID}" height="${GRID}" patternUnits="userSpaceOnUse"><circle cx="0" cy="0" r="1.1" style="fill:#c3cad1;stroke:none"/></pattern></defs><rect width="2200" height="1400" style="fill:#fff;stroke:none"/><rect width="2200" height="1400" style="fill:url(#edg);stroke:none"/>`;
+      for (const w of S.wires) { const sel = this.sel && this.sel.id === w.id; s += `<line x1="${w.x1}" y1="${w.y1}" x2="${w.x2}" y2="${w.y2}"${sel ? ' style="stroke:#0b5cad;stroke-width:3"' : ''}/>`; }
+      for (const p of S.parts) s += this.partEl(p, names.get(p.id), this.sel && this.sel.id === p.id);
+      // junction dots & open pins
+      const net = this.connectivity();
+      for (const d of net.dots) s += `<circle cx="${d[0]}" cy="${d[1]}" r="3.6" class="dot"/>`;
+      for (const o of net.open) s += `<circle cx="${o[0]}" cy="${o[1]}" r="4" style="stroke:#d32f2f;stroke-width:1.6;fill:#fff"/>`;
+      // previews
+      if (this.mouse) {
+        const mx = snap(this.mouse.x), my = snap(this.mouse.y);
+        if (this.tool === 'wire') {
+          s += `<circle cx="${mx}" cy="${my}" r="4" style="fill:#0b5cad;stroke:none;opacity:.6"/>`;
+          if (this.wstart) { const a = this.wstart; s += `<path d="M${a.x},${a.y} L${mx},${a.y} L${mx},${my}" style="stroke:#0b5cad;stroke-dasharray:5 4;fill:none"/>`; }
+        } else if (this.tool !== 'select') s += `<g opacity=".5">${this.partEl({ type: this.tool, x: mx, y: my, rot: this.toolRot, props: DEFAULTS[this.tool] || {} }, PREFIX[this.tool], false)}</g>`;
+      }
+      this.svg.innerHTML = s;
+    }
+    partEl(p, name, sel) {
+      const hl = sel ? `<rect x="${p.x - 48}" y="${p.y - 48}" width="96" height="96" rx="8" style="fill:rgba(11,92,173,.08);stroke:#0b5cad;stroke-dasharray:4 3"/>` : '';
+      if (p.type === 'GND') return hl + gndSym(p.x, p.y);
+      if (p.type === 'OA') return hl + `<g transform="translate(${p.x},${p.y}) rotate(${p.rot})">${opampSym(p.rot)}</g><text x="${p.x + 6}" y="${p.y - 44}" class="nm" dominant-baseline="central">${PB.esc(sub(name || 'AOP'))}</text>`;
+      const pins = pinsAbs(p); const [a, b] = p.type === 'POT' ? [pins[0], pins[2]] : pins;
+      const pp = { type: p.type === 'POT' ? 'POT' : p.type, name, val: this.valueText(p), elec: p.type === 'C' && p.props.v >= 1e-6, ch: p.type === 'SC' ? name : null };
+      if (p.type === 'POT') return hl + `<g transform="translate(${p.x},${p.y}) rotate(${p.rot})">${symbol('POT', 80, { ang: p.rot })}</g>` + `<text x="${p.x + 26}" y="${p.y - 26}" class="nm" dominant-baseline="central">${PB.esc(sub(name))}</text><text x="${p.x + 26}" y="${p.y + 22}" class="vl" dominant-baseline="central">${PB.esc(pp.val)}</text>`;
+      return hl + partSVG(pp, a[0], a[1], b[0], b[1], true);
+    }
+    /* connectivity → nets */
+    connectivity() {
+      const S = this.S, uf = new UF(), K = (x, y) => x + ',' + y;
+      const pts = new Map(); const addPt = (x, y, n) => { const k = K(x, y); pts.set(k, (pts.get(k) || 0) + n); };
+      for (const w of S.wires) { uf.u(K(w.x1, w.y1), K(w.x2, w.y2)); addPt(w.x1, w.y1, 1); addPt(w.x2, w.y2, 1); }
+      const pinList = [];
+      for (const p of S.parts) pinsAbs(p).forEach(([x, y], i) => { pinList.push({ p, i, x, y }); addPt(x, y, 1); if (p.type === 'GND') uf.u(K(x, y), 'GND'); });
+      // T-junctions: points lying inside a wire
+      const dots = [];
+      for (const [k, n] of pts) {
+        const [x, y] = k.split(',').map(Number); let d = n;
+        for (const w of S.wires) if (inside(x, y, w)) { uf.u(k, K(w.x1, w.y1)); d += 2; }
+        if (d >= 3) dots.push([x, y]);
+      }
+      const open = [];
+      for (const q of pinList) if (q.p.type !== 'GND' && (pts.get(K(q.x, q.y)) || 0) < 2 && !S.wires.some((w) => inside(q.x, q.y, w))) open.push([q.x, q.y]);
+      return { uf, pinList, dots, open, K };
+    }
+    toCircuit() {
+      const S = this.S, c = this.connectivity(), names = this.names();
+      const nets = new Map(), parts = [], netX = new Map(), errs = [];
+      const scUsed = new Set(S.parts.filter((p) => p.type === 'SC' && p.props.ch).map((p) => p.props.ch));
+      for (const p of S.parts) {
+        if (p.type === 'GND') continue;
+        const pins = pinsAbs(p).map(([x, y]) => c.uf.f(c.K(x, y)));
+        pins.forEach((n, i) => { if (!nets.has(n)) nets.set(n, { id: n, earth: n === 'GND' }); const px = pinsAbs(p)[i][0]; netX.set(n, Math.min(netX.has(n) ? netX.get(n) : Infinity, px)); });
+        const q = { ...p.props };
+        if (p.type === 'SC' && !q.ch) { for (let k = 1; k <= 4; k++) if (!scUsed.has(k)) { q.ch = k; scUsed.add(k); break; } }
+        parts.push({ id: p.id, type: p.type, pins, props: q, name: names.get(p.id), val: this.valueText(p), elec: p.type === 'C' && q.v >= 1e-6 });
+      }
+      if (c.open.length) errs.push(t('sch.wOpen', { n: c.open.length }));
+      return { nets, parts, netX, warn: errs };
+    }
+    validate() { const m = document.getElementById('edMsg'); if (!m) return; const c = this.toCircuit(); m.textContent = c.warn.join(' '); }
+    props() {
+      const box = document.getElementById('edProps'); if (!box) return;
+      const p = this.sel && this.sel.kind === 'part' && this.S.parts.find((x) => x.id === this.sel.id);
+      if (!p) { box.innerHTML = `<p class="muted">${this.sel && this.sel.kind === 'wire' ? t('sel.wire') : t('sch.noSel')}</p>`; return; }
+      const q = p.props; let h = `<div class="ihead">${t('sch.p.' + p.type)}</div>`;
+      const fld = (k, lab, v) => `<label class="fld"><span>${lab}</span><input data-k="${k}" value="${PB.esc(v)}" spellcheck="false"></label>`;
+      const sel = (k, lab, opts, cur) => `<label class="fld"><span>${lab}</span><select data-k="${k}">${opts.map(([v, l]) => `<option value="${v}"${String(v) === String(cur) ? ' selected' : ''}>${PB.esc(l)}</option>`).join('')}</select></label>`;
+      if (['R', 'POT'].includes(p.type)) h += fld('v', t('side.value'), PB.si(q.v, 'Ω', 4, false));
+      if (p.type === 'C') h += fld('v', t('side.value'), PB.si(q.v, 'F', 4, false));
+      if (p.type === 'L') h += fld('v', t('side.value'), PB.si(q.v, 'H', 4, false));
+      if (p.type === 'POT') h += fld('pos', t('sel.pos') + ' (%)', Math.round(q.pos * 100));
+      if (p.type === 'D') h += sel('model', t('sel.model'), [['1N4148', '1N4148'], ['1N4007', '1N4007']], q.model);
+      if (p.type === 'LED') h += sel('model', t('sel.model'), [['LED-R', PB.DIODES['LED-R'].label], ['LED-G', PB.DIODES['LED-G'].label], ['LED-Y', PB.DIODES['LED-Y'].label]], q.model);
+      if (p.type === 'VDC') h += fld('u', t('sch.voltage') + ' (V)', q.u) + fld('imax', t('sch.imax') + ' (A)', q.imax) + `<p class="note">${t('sch.nVdc')}</p>`;
+      if (p.type === 'VAC') h += sel('wave', t('sch.wave'), [['sine', t('sch.sine')], ['square', t('sch.square')], ['triangle', t('sch.tri')]], q.wave) + fld('amp', 'Û (V)', q.amp) + fld('f', 'f (Hz)', q.f) + fld('off', 'Offset (V)', q.off) + `<p class="note">${t('sch.nVac')}</p>`;
+      if (p.type === 'VM') h += sel('mode', t('sch.mode'), [['DC', 'DC V'], ['AC', 'AC V']], q.mode);
+      if (p.type === 'AM') h += sel('mode', t('sch.mode'), [['DC', 'DC I'], ['AC', 'AC I']], q.mode) + `<p class="note">${t('sch.nAm')}</p>`;
+      if (p.type === 'SC') h += sel('ch', t('sch.channel'), [[0, 'Auto'], [1, 'CH1'], [2, 'CH2'], [3, 'CH3'], [4, 'CH4']], q.ch) + `<p class="note">${t('sch.nSc')}</p>`;
+      if (p.type === 'OA') h += `<p class="note">${t('sch.nOa')}</p>`;
+      box.innerHTML = h;
+      box.querySelectorAll('[data-k]').forEach((el) => el.addEventListener('change', () => {
+        const k = el.dataset.k; let v = el.value;
+        if (['v'].includes(k)) { v = PB.parseSI(v); if (!(v > 0)) return this.props(); }
+        else if (['u', 'imax', 'amp', 'f', 'off'].includes(k)) { v = PB.parseSI(v); if (!isFinite(v)) return this.props(); }
+        else if (k === 'pos') { v = PB.clamp((parseFloat(v) || 0) / 100, 0, 1); }
+        else if (k === 'ch') v = +v;
+        q[k] = v; this.changed(); this.props();
+      }));
+    }
+  }
+  function $hint(ed, s) { const h = ed.host.querySelector('#edHint'); if (h) h.textContent = s; }
+  const inside = (x, y, w) => (w.y1 === w.y2 && y === w.y1 && x > Math.min(w.x1, w.x2) && x < Math.max(w.x1, w.x2)) || (w.x1 === w.x2 && x === w.x1 && y > Math.min(w.y1, w.y2) && y < Math.max(w.y1, w.y2));
+  function distSeg(px, py, w) { const dx = w.x2 - w.x1, dy = w.y2 - w.y1, L2 = dx * dx + dy * dy || 1; const u = PB.clamp(((px - w.x1) * dx + (py - w.y1) * dy) / L2, 0, 1); return Math.hypot(px - (w.x1 + u * dx), py - (w.y1 + u * dy)); }
+
+  /* ================= circuit → breadboard setup ================= */
+  function toBench(c) {
+    const errs = [];
+    const ext = c.parts.filter((p) => !BOARDP.has(p.type));
+    const vdc = ext.filter((p) => p.type === 'VDC'), vac = ext.filter((p) => p.type === 'VAC'), meters = ext.filter((p) => ['VM', 'AM', 'OM'].includes(p.type)), scs = ext.filter((p) => p.type === 'SC');
+    if (!c.parts.length) errs.push(t('sch.eEmpty'));
+    if (vdc.length > 3) errs.push(t('sch.ePsu')); if (vac.length > 1) errs.push(t('sch.eGen')); if (meters.length > 2) errs.push(t('sch.eDmm'));
+    if (scs.length > 4 || new Set(scs.map((s) => s.props.ch)).size !== scs.length) errs.push(t('sch.eScope'));
+    const H = PB.boardGeom.hid;
+    let nets = [...new Set(c.parts.flatMap((p) => p.pins))];
+    nets.sort((a, b) => (a === 'GND') - (b === 'GND') || (c.netX.get(a) || 0) - (c.netX.get(b) || 0));
+    const hasIC = c.parts.some((p) => p.type === 'OA' || p.type === 'POT');
+    if (nets.length > (hasIC ? 18 : 27)) errs.push(t('sch.eNets'));
+    if (errs.length) return { errs };
+    const s = { comps: [], wires: [], cables: [], adapters: [], dev: {}, on: [] };
+    const used = new Set(), taken = new Set(), strips = new Map();
+    let wid = 0; const wire = (a, b, color) => s.wires.push({ id: 'sw' + (++wid), a, b, color: color || 'green' });
+    nets.forEach((n, i) => { const pr = Math.floor(i / 9), r = 2 * pr, col = 2 + 5 * (i % 9); strips.set(n, [{ r, c: col }]); taken.add(r + ',' + col); });
+    const freeStrip = (pref) => {
+      if (pref && !taken.has(pref.r + ',' + pref.c) && pref.r <= 5) return pref;
+      for (let r = 0; r < 6; r++) for (let cc = 0; cc < 46; cc++) if (!taken.has(r + ',' + cc)) return { r, c: cc };
+      return null;
+    };
+    const holeOf = (n, prefK) => {
+      const ss = strips.get(n);
+      for (const st of ss) for (const k of (prefK !== undefined ? [prefK, 0, 1, 2, 3] : [0, 1, 2, 3])) { if (k > 3) continue; const h = H(st.r, k, st.c); if (!used.has(h)) { used.add(h); return h; } }
+      const last = ss[ss.length - 1];
+      const ns = freeStrip({ r: last.r + 1, c: last.c }); if (!ns) throw new Error('board full');
+      taken.add(ns.r + ',' + ns.c); ss.push(ns);
+      const a = H(last.r, 4, last.c), b = H(ns.r, 0, ns.c); used.add(a); used.add(b); wire(a, b, 'green');
+      const h = H(ns.r, 1, ns.c); used.add(h); return h;
+    };
+    try {
+      // integrated parts zone (rows E/F)
+      const zoneUsed = new Set();
+      const zone = (w, pins) => {
+        const cols = pins.filter((n) => strips.has(n)).map((n) => strips.get(n)[0].c);
+        const pref = cols.length ? Math.round(cols.reduce((a, b) => a + b, 0) / cols.length - (w - 1) / 2) : 2;
+        const ok = (c0) => c0 >= 1 && c0 + w <= 45 && [...Array(w + 2).keys()].every((k) => !zoneUsed.has(c0 - 1 + k));
+        let c0 = null; for (let d = 0; d < 46 && c0 === null; d++) for (const s of [pref + d, pref - d]) if (c0 === null && ok(s)) c0 = s;
+        if (c0 === null) throw new Error('zone');
+        for (let k = 0; k < w; k++) { zoneUsed.add(c0 + k); taken.add('4,' + (c0 + k)); taken.add('5,' + (c0 + k)); }
+        return c0;
+      };
+      let ci = 0; const cid = (p) => p + (++ci);
+      for (const p of c.parts) {
+        const q = p.props || {};
+        if (p.type === 'OA') {
+          const c0 = zone(4, p.pins);
+          const pinH = [H(5, 0, c0), H(5, 0, c0 + 1), H(5, 0, c0 + 2), H(5, 0, c0 + 3), H(4, 4, c0 + 3), H(4, 4, c0 + 2), H(4, 4, c0 + 1), H(4, 4, c0)];
+          pinH.forEach((h) => used.add(h));
+          s.comps.push({ id: cid('U'), type: 'OA', pins: pinH, model: 'µA741', tf: 1 });
+          // pin index → net : 2 inm, 3 inp, 4 vn, 6 out, 7 vp (1-based)
+          const map = [[1, p.pins[0]], [2, p.pins[1]], [3, p.pins[4]], [5, p.pins[2]], [6, p.pins[3]]];
+          for (const [i, n] of map) { const top = i >= 4; const st = top ? { r: 4, c: c0 + (7 - i) } : { r: 5, c: c0 + i }; const h = top ? H(4, 0, st.c) : H(5, 4, st.c); used.add(h); wire(h, holeOf(n), i === 5 ? 'red' : i === 3 ? 'blue' : 'yellow'); }
+        } else if (p.type === 'POT') {
+          const c0 = zone(3, p.pins);
+          const pins = [H(4, 2, c0), H(4, 2, c0 + 1), H(4, 2, c0 + 2)]; pins.forEach((h) => used.add(h));
+          s.comps.push({ id: cid('P'), type: 'POT', pins, v: q.v, pos: q.pos, tf: 1 });
+          p.pins.forEach((n, i) => { const h = H(4, 0, c0 + i); used.add(h); wire(h, holeOf(n), 'yellow'); });
+        } else if (BOARDP.has(p.type)) {
+          const a = holeOf(p.pins[0]); const ka = +a.split('.')[1];
+          const b = holeOf(p.pins[1], ka);
+          const comp = { id: cid(p.type), type: p.type, pins: [a, b], tf: 1 };
+          if (p.type === 'R') Object.assign(comp, { v: q.v, pw: 0.25 });
+          if (p.type === 'C') Object.assign(comp, { v: q.v, ckind: q.v >= 1e-6 ? 'elec' : 'cer' });
+          if (p.type === 'L') Object.assign(comp, { v: q.v, rs: +Math.max(0.5, 30 * Math.sqrt(q.v / 0.01)).toPrecision(2) });
+          if (['D', 'LED', 'Z'].includes(p.type)) comp.model = q.model;
+          s.comps.push(comp);
+        }
+      }
+      // banana sockets on the board edges
+      const socks = [['L', 0, 3], ['L', 1, 3], ['L', 2, 3], ['L', 3, 3], ['R', 0, 2], ['R', 1, 2], ['R', 2, 2], ['R', 3, 2], ['R', 4, 2], ['R', 5, 2]];
+      const sockUse = new Map(); const sockNet = [];
+      const sockFor = (n, color) => {
+        const ex = sockNet.find((x) => x.n === n && x.cnt < 3); if (ex) { ex.cnt++; return 'brd.' + ex.s; }
+        const home = strips.get(n)[0];
+        const pref = home.c < 23 ? 'L' : 'R';
+        const free = socks.filter(([sd, i]) => !sockUse.has(sd + i)).sort((a, b) => (a[0] === pref ? 0 : 1) - (b[0] === pref ? 0 : 1))[0];
+        if (!free) throw new Error('socks');
+        const name = free[0] + free[1]; sockUse.set(name, n); sockNet.push({ n, s: name, cnt: 1 });
+        wire(`s${free[0]}${free[1]}.${free[0] === 'L' ? 1 : 0}`, holeOf(n), color || 'green');
+        return 'brd.' + name;
+      };
+      let cab = 0; const B = (a, b, color) => s.cables.push({ id: 'sc' + (++cab), kind: 'banana', a, b, color });
+      const on = new Set();
+      vdc.forEach((p, i) => { const n = i + 1; B(`hmp.ch${n}.p`, sockFor(p.pins[0], 'red'), 'red'); B(`hmp.ch${n}.m`, sockFor(p.pins[1], 'black'), 'black'); on.add('hmp'); });
+      if (vdc.length) s.dev.hmp = { ch: vdc.map((p) => ({ v: PB.clamp(p.props.u, 0, 32), i: PB.clamp(p.props.imax || 0.1, 0.001, 5), sel: true })), out: true };
+      if (vac.length) {
+        const p = vac[0], q = p.props;
+        s.adapters.push({ id: 'sag', port: 'gen.out' }); B('sag.r', sockFor(p.pins[0], 'yellow'), 'yellow'); B('sag.k', sockFor(p.pins[1], 'black'), 'black');
+        s.dev.hmf = { wave: q.wave || 'sine', freq: q.f, ampl: 2 * q.amp, offset: q.off || 0, offOn: !!q.off, out: true }; on.add('hmf');
+      }
+      meters.forEach((p, i) => {
+        const d = 'dmm' + (i + 1); on.add(d);
+        const hi = p.type === 'AM' ? d + '.a' : d + '.v';
+        B(hi, sockFor(p.pins[0], 'red'), 'red'); B(d + '.com', sockFor(p.pins[1], 'black'), 'black');
+        s.dev[d] = { fn: p.type === 'AM' ? (p.props.mode === 'AC' ? 'ACI' : 'DCI') : p.type === 'OM' ? 'OHM' : (p.props.mode === 'AC' ? 'ACV' : 'DCV') };
+      });
+      if (scs.length) {
+        s.dev.hmo = { ch: [0, 1, 2, 3].map(() => ({ on: false })) };
+        for (const p of scs) { const n = p.props.ch; const id = 'sa' + n; s.adapters.push({ id, port: 'scope.ch' + n }); B(id + '.r', sockFor(p.pins[0], ['yellow', 'blue', 'red', 'green'][n - 1]), ['yellow', 'blue', 'red', 'green'][n - 1]); B(id + '.k', sockFor(p.pins[1], 'black'), 'black'); s.dev.hmo.ch[n - 1] = { on: true }; }
+        s.dev.hmo.trig = { src: scs[0].props.ch - 1 };
+        on.add('hmo'); s.autoset = true;
+      }
+      s.on = [...on];
+    } catch (e) { return { errs: [e.message === 'socks' ? t('sch.eSocks') : e.message === 'zone' ? t('sch.eZone') : t('sch.eBoard')] }; }
+    return { setup: s };
+  }
+
+  /* ================= dialog controller ================= */
+  class UI {
+    constructor(app) { this.app = app; this.tab = 'view'; }
+    open() {
+      const d = document.getElementById('dlgSchem');
+      d.innerHTML = `<div class="sch-dlg"><header><h2>${t('sch.title')}</h2><div class="seg sch-tabs"><button type="button" data-st="view">${t('sch.tabView')}</button><button type="button" data-st="edit">${t('sch.tabEdit')}</button></div><span class="sp"></span><button type="button" class="x" data-st="close" aria-label="${t('set.close')}">✕</button></header><div class="sch-body"></div></div>`;
+      d.querySelector('header').addEventListener('click', (e) => { const b = e.target.closest('[data-st]'); if (!b) return; if (b.dataset.st === 'close') d.close(); else this.show(b.dataset.st); });
+      d.onkeydown = (e) => { if (this.tab === 'edit' && this.ed && this.ed.key(e)) { e.preventDefault(); e.stopPropagation(); } };
+      d.oncancel = (e) => { if (this.tab === 'edit' && this.ed && this.ed._esc) { e.preventDefault(); this.ed._esc = false; } };
+      if (!d.open) d.showModal();
+      this.show(this.tab);
+    }
+    show(tab) {
+      this.tab = tab;
+      const d = document.getElementById('dlgSchem'), body = d.querySelector('.sch-body');
+      d.querySelectorAll('[data-st]').forEach((b) => b.classList.toggle('on', b.dataset.st === tab));
+      if (tab === 'view') {
+        let svg = '', empty = false;
+        try {
+          const circ = extract(this.app);
+          if (!circ.parts.length) empty = true;
+          else svg = renderSVG(layout(circ), `${this.app.proj.name} — ${new Date().toLocaleDateString({ fr: 'fr-CH', en: 'en-GB', de: 'de-CH' }[PB.lang] || 'fr-CH')}`);
+        } catch (e) { console.error(e); svg = ''; empty = true; }
+        this.svg = svg;
+        body.innerHTML = `<div class="sch-bar"><span class="note">${t('sch.viewNote')}</span><span class="sp"></span><button type="button" class="btn" data-ex="svg" ${empty ? 'disabled' : ''}>SVG</button><button type="button" class="btn" data-ex="png" ${empty ? 'disabled' : ''}>PNG</button></div><div class="sch-view">${empty ? `<p class="muted sch-empty">${t('sch.empty')}</p>` : svg}</div>`;
+        body.querySelectorAll('[data-ex]').forEach((b) => b.addEventListener('click', () => this.export(b.dataset.ex, this.svg)));
+      } else {
+        body.innerHTML = `<div class="sch-bar"><span class="note">${t('sch.editNote')}</span><span class="sp"></span><button type="button" class="btn" data-ex="svg">SVG</button><button type="button" class="btn" data-ex="png">PNG</button><button type="button" class="btn on" data-ex="build">${t('sch.build')}</button></div><div class="sch-editor"></div>`;
+        this.ed = new Editor(this.app, body.querySelector('.sch-editor'));
+        this.ed.validate();
+        body.querySelectorAll('[data-ex]').forEach((b) => b.addEventListener('click', () => {
+          if (b.dataset.ex === 'build') return this.build();
+          const svg = this.editorSVG(); if (svg) this.export(b.dataset.ex, svg);
+        }));
+      }
+    }
+    editorSVG() {
+      const ed = this.ed; const S = ed.S; if (!S.parts.length && !S.wires.length) return null;
+      let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+      for (const p of S.parts) { x0 = Math.min(x0, p.x - 70); y0 = Math.min(y0, p.y - 70); x1 = Math.max(x1, p.x + 150); y1 = Math.max(y1, p.y + 70); }
+      for (const w of S.wires) { x0 = Math.min(x0, w.x1, w.x2); y0 = Math.min(y0, w.y1, w.y2); x1 = Math.max(x1, w.x1, w.x2); y1 = Math.max(y1, w.y1, w.y2); }
+      const names = ed.names(); const net = ed.connectivity();
+      let s = `<svg xmlns="http://www.w3.org/2000/svg" class="sch" viewBox="${x0 - 30} ${y0 - 30} ${x1 - x0 + 60} ${y1 - y0 + 60}" width="${Math.round(x1 - x0 + 60)}" height="${Math.round(y1 - y0 + 60)}">${STYLE}<rect x="${x0 - 30}" y="${y0 - 30}" width="${x1 - x0 + 60}" height="${y1 - y0 + 60}" style="fill:#fff;stroke:none"/>`;
+      for (const w of S.wires) s += wire(w.x1, w.y1, w.x2, w.y2);
+      for (const p of S.parts) s += ed.partEl(p, names.get(p.id), false);
+      for (const d of net.dots) s += `<circle cx="${d[0]}" cy="${d[1]}" r="3.6" class="dot"/>`;
+      return s + '</svg>';
+    }
+    export(kind, svg) {
+      if (!svg) return;
+      const name = (this.app.proj.name || 'schema').replace(/[\\/:*?"<>|]+/g, '_') + '_schema';
+      if (kind === 'svg') { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' })); a.download = name + '.svg'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); return; }
+      const img = new Image(); const url = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }));
+      img.onload = () => { const k = 2; const cv = document.createElement('canvas'); cv.width = img.width * k; cv.height = img.height * k; const ctx = cv.getContext('2d'); ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, cv.width, cv.height); ctx.drawImage(img, 0, 0, cv.width, cv.height); URL.revokeObjectURL(url); cv.toBlob((b) => { const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name + '.png'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }, 'image/png'); };
+      img.src = url;
+    }
+    build() {
+      const c = this.ed.toCircuit();
+      const r = toBench(c);
+      const msg = document.getElementById('edMsg');
+      if (r.errs) { if (msg) msg.textContent = r.errs.join(' '); this.app.toast(r.errs[0], 'err'); return; }
+      if (this.app.applySetup(r.setup, t('sch.built'))) document.getElementById('dlgSchem').close();
+    }
+  }
+  PB.Schem = { extract, layout, renderSVG, Editor, toBench, UI };
+})();
+
+'use strict';
 /* PocketBench — application shell */
 (function () {
   const t = PB.t;
@@ -3919,7 +4761,7 @@ Object.assign(PB.I18N.de, {
     /* ---------- project load/apply ---------- */
     serialize() {
       const p = this.proj;
-      const out = JSON.parse(JSON.stringify({ app: 'PocketBench', format: 1, version: PB.VERSION, id: p.id, name: p.name, models: p.models, ideal: p.ideal, tol: p.tol, labels: p.labels, comps: p.comps, wires: p.wires, cables: p.cables, adapters: p.adapters }));
+      const out = JSON.parse(JSON.stringify({ app: 'PocketBench', format: 1, version: PB.VERSION, id: p.id, name: p.name, models: p.models, ideal: p.ideal, tol: p.tol, labels: p.labels, comps: p.comps, wires: p.wires, cables: p.cables, adapters: p.adapters, schem: p.schem || null }));
       out.savedAt = new Date().toISOString();
       out.view = { ...this.view }; out.ui = { wireColor: this.ui.wireColor, banColor: this.ui.banColor };
       out.board = { x: this.board.x, y: this.board.y };
@@ -3929,7 +4771,7 @@ Object.assign(PB.I18N.de, {
     loadProject(data, quiet) {
       if (!data || data.app !== 'PocketBench' || !data.devices) { if (!quiet) this.toast(t('st.importErr'), 'err'); return false; }
       const p = this.blankProject();
-      Object.assign(p, { id: data.id || p.id, name: data.name || p.name, models: Object.assign(p.models, data.models || {}), ideal: !!data.ideal, tol: !!data.tol, labels: data.labels !== false, comps: data.comps || [], wires: data.wires || [], cables: data.cables || [], adapters: data.adapters || [] });
+      Object.assign(p, { id: data.id || p.id, name: data.name || p.name, models: Object.assign(p.models, data.models || {}), ideal: !!data.ideal, tol: !!data.tol, labels: data.labels !== false, comps: data.comps || [], wires: data.wires || [], cables: data.cables || [], adapters: data.adapters || [], schem: data.schem || null });
       this.proj = p;
       if (this.devices.hmo.model !== p.models.scope) { this.devices.hmo.el.remove(); this.devices.hmo = new PB.HMO(this, 'hmo', p.models.scope); this.devices.hmo.mount(this.world); }
       if (this.devices.hmf.model !== p.models.gen) { this.devices.hmf.el.remove(); this.devices.hmf = new PB.HMF(this, 'hmf', p.models.gen); this.devices.hmf.mount(this.world); }
@@ -4049,11 +4891,13 @@ Object.assign(PB.I18N.de, {
         case 'zout': { const v = this.vp.getBoundingClientRect(); return this.zoomAt(v.left + v.width / 2, v.top + v.height / 2, 0.8); }
         case 'fit': return this.fit();
         case 'settings': return this.openSettings();
+        case 'schem': if (!this.schemUI) this.schemUI = new PB.Schem.UI(this); return this.schemUI.open();
         case 'toggleLeft': this.settings.left = !this.settings.left; this.applyPanels(); return this.saveSettings();
         case 'toggleTP': this.settings.tp.open = !this.settings.tp.open; this.applyPanels(); return this.saveSettings();
       }
     }
     onKey(e) {
+      if (document.querySelector('dialog[open]')) return;
       const tag = (e.target.tagName || '').toLowerCase();
       if (tag === 'input' || tag === 'select' || tag === 'textarea') { if (e.key === 'Escape') e.target.blur(); return; }
       const mod = e.ctrlKey || e.metaKey;
@@ -4469,9 +5313,11 @@ Object.assign(PB.I18N.de, {
       const [tpId, n] = key.split(':');
       const tp = PB.TPS.find((x) => x.id === tpId), ex = tp && tp.ex.find((e) => e.n === n), su = ex && ex.setups[i];
       if (!su) return;
+      this.applySetup(su.make(), `${tp.name} ${ex.n} · ${su.label}`);
+    }
+    applySetup(s, label) {
       const p = this.proj;
-      if ((p.comps.length || p.wires.length || p.cables.length || p.adapters.length) && !confirm(t('tp.confirm'))) return;
-      const s = su.make();
+      if ((p.comps.length || p.wires.length || p.cables.length || p.adapters.length) && !confirm(t('tp.confirm'))) return false;
       this.cancelPend(); this.tool = 'select'; this.ui.place = null; this.sel = null;
       this.mutate(() => { p.comps = JSON.parse(JSON.stringify(s.comps)); p.wires = JSON.parse(JSON.stringify(s.wires)); p.cables = JSON.parse(JSON.stringify(s.cables)); p.adapters = JSON.parse(JSON.stringify(s.adapters)); });
       for (const d of this.devList) {
@@ -4483,8 +5329,10 @@ Object.assign(PB.I18N.de, {
       }
       this.syncFans(); this.refreshTools(); this.renderInspector(); this.dirty(); this.markSave();
       PB.sfx.plug(); PB.sfx.bnc(0.15); PB.sfx.plug(0.3);
+      this.autosetPending = !!s.autoset;
       this.fit();
-      this.toast(t('tp.loaded', { n: `${tp.name} ${ex.n} · ${su.label}` }));
+      this.toast(t('tp.loaded', { n: label }));
+      return true;
     }
     applyTheme() {
       const th = this.settings.theme === 'auto' ? (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : this.settings.theme;
@@ -4543,6 +5391,7 @@ Object.assign(PB.I18N.de, {
       catch (err) { console.error(err); return; }
       this.sol = sol; this.nl = nl;
       for (const d of this.devList) d.onSolve(sol, ctx);
+      if (this.autosetPending && this.devices.hmo.state.on) { this.autosetPending = false; this.devices.hmo.autoset(); }
       // component checks
       const hot = new Set(), led = new Map(), warns = [];
       for (const c of p.comps) {

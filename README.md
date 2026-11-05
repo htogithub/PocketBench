@@ -20,6 +20,13 @@ Open `index.html` in a desktop browser. Projects are autosaved in the browser, c
 
 Light and dark themes; French, English and German interface. Both side panels can be hidden.
 
+## Circuit diagrams
+
+The **Schematic** button opens a two-way tool:
+
+- **Diagram of the bench** — draws the theoretical circuit diagram of what is currently wired (IEC symbols, named nodes, simplified instruments: sources, voltmeters, ammeters, scope channels, earth), exportable as SVG or PNG.
+- **Editor → bench** — draw a diagram with symbols and wires, set the values, and PocketBench lays the parts out on the Hirschmann board, runs the leads and configures the instruments automatically.
+
 ## Lab sessions
 
 An optional right-hand panel walks through the first lab sessions (instrumentation, fundamental laws, Thévenin/Norton/superposition). For every exercise it gives the instructions, progressive hints, and one or more ready-made setups that wire the board and configure the instruments in one click. The lab content is in French, as in the course.
