@@ -8,9 +8,11 @@ It reproduces the front panels of the bench instruments and a Hirschmann breadbo
 - **Function generator** HAMEG HMF2550 / HMF2525: sine, square, triangle, pulse, arbitrary; keypad and knob entry; OFFSET, INVERT, 50 Ω output, High-Z / 50 Ω load; MOD, SWEEP, BURST.
 - **Power supply** HAMEG HMP2030: three floating channels, CV/CC with current limit, electronic fuse, tracking, store/recall.
 - **2 × multimeter** HAMEG HMC8012: DC/AC voltage and current, resistance, capacitance, continuity, diode, ranges, 2nd function, statistics, limits, NULL, HOLD.
-- **Hirschmann breadboard** with resistors, capacitors, inductors, diodes, LEDs, Zener, µA741 op-amp and potentiometer, coloured jumper wires, banana leads, BNC coaxial cables and BNC-to-banana adapters.
+- **Hirschmann breadboard** with resistors, capacitors, inductors, diodes, LEDs, Zener, µA741 op-amp and potentiometer, coloured jumper wires, banana leads, BNC-to-banana adapters, and shielded coaxial cables (BNC–BNC or BNC to red/black banana plugs).
 
 The simulation includes real-world effects: 50 Ω generator output resistance, power-supply current limiting, meter shunts and input impedances, AC bandwidth of the multimeter, common earth of the oscilloscope and generator, quantisation, noise and pickup on unshielded leads. An "ideal instruments" setting turns these off.
+
+Synthesized sound effects (no audio files): key presses, knob detents, internal relays, banana and BNC plugs, breadboard inserts, instrument beeps (including the multimeter continuity tester) and optional fan noise.
 
 ## Use
 

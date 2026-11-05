@@ -69,7 +69,12 @@ button { font-family: inherit; }
 #insp .btn.danger { margin-top: 12px; }
 .ihead { font-weight: 700; font-size: 15px; display: flex; flex-direction: column; gap: 2px; }
 .ihead span { font-weight: 500; font-size: 12.5px; color: var(--ink2); font-variant-numeric: tabular-nums; }
-#toolAdapter { width: 100%; text-align: left; }
+.btn.tool { width: 100%; display: flex; align-items: center; gap: 10px; text-align: left; }
+.btn.tool svg { width: 40px; height: 22px; flex: none; padding: 1px 3px; background: #ecebe5; border-radius: 4px; }
+.btn.tool + .note { margin-bottom: 10px; }
+#cables .split { fill: #1d1f22; stroke: #000; stroke-width: 1; pointer-events: none; }
+#cables .plug.free { pointer-events: none; opacity: .95; }
+#cables .ghost { opacity: .6; pointer-events: none; }
 
 /* ---------- workspace ---------- */
 #vp { grid-area: main; position: relative; overflow: hidden; background-color: var(--mat); background-image: linear-gradient(var(--matl) 1px, transparent 1px), linear-gradient(90deg, var(--matl) 1px, transparent 1px), radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, .06), transparent 70%); background-size: 40px 40px, 40px 40px, 100% 100%; cursor: default; touch-action: none; user-select: none; -webkit-user-select: none; }
@@ -258,7 +263,8 @@ canvas.scr { position: absolute; left: 50%; top: 50%; transform: translate(-50%,
 #toast.err { background: var(--danger); color: #fff; }
 
 /* ---------- dialogs ---------- */
-dialog { border: none; border-radius: 14px; padding: 0; background: var(--chrome); color: var(--ink); box-shadow: 0 24px 60px rgba(0, 0, 0, .4); width: min(480px, 92vw); }
+dialog { border: none; border-radius: 14px; padding: 0; background: var(--chrome); color: var(--ink); box-shadow: 0 24px 60px rgba(0, 0, 0, .4); width: min(480px, 92vw); max-height: 92vh; overflow-y: auto; }
+dialog input[type=range] { accent-color: var(--accent); width: 160px; }
 dialog::backdrop { background: rgba(8, 12, 16, .45); }
 .dlg header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px 6px; }
 .dlg h2 { margin: 0; font: 700 19px var(--fc); }
@@ -308,7 +314,11 @@ dialog::backdrop { background: rgba(8, 12, 16, .45); }
   <section><h2 data-i18n="side.parts">Composants</h2><div id="parts" class="parts"></div><div id="partOpts"></div></section>
   <section><h2 data-i18n="side.wires">Fils de la plaque</h2><div id="wireCols" class="swatches"></div></section>
   <section><h2 data-i18n="side.cables">Câbles banane</h2><div id="banCols" class="swatches"></div></section>
-  <section><h2 data-i18n="side.bnc">Liaisons BNC</h2><button id="toolAdapter" class="btn" data-i18n="bnc.adapter">Adaptateur BNC → banane</button><p class="note" data-i18n="bnc.coaxHint"></p></section>
+  <section><h2 data-i18n="side.bnc">Liaisons BNC</h2>
+    <button id="toolAdapter" class="btn tool"><svg viewBox="0 0 40 22" aria-hidden="true"><circle cx="20" cy="5" r="4.5" fill="#d2a43c"/><rect x="8" y="9" width="24" height="12" rx="3" fill="#25282c"/><circle cx="14" cy="15" r="3.4" fill="#c9302c"/><circle cx="26" cy="15" r="3.4" fill="#555"/></svg><span data-i18n="bnc.adapter">Adaptateur BNC → banane</span></button>
+    <p class="note" data-i18n="bnc.adapterHint"></p>
+    <button id="toolCoax" class="btn tool"><svg viewBox="0 0 40 22" aria-hidden="true"><circle cx="7" cy="11" r="5.5" fill="#c9cdd1" stroke="#686e74" stroke-width="1.5"/><path d="M12 11 C20 11 22 6 29 6" stroke="#151617" stroke-width="3.6" fill="none"/><path d="M29 6 L37 3" stroke="#c9302c" stroke-width="2.2"/><path d="M29 6 L37 13" stroke="#2a2c30" stroke-width="2.2"/></svg><span data-i18n="bnc.coaxTool">Câble coaxial</span></button>
+    <p class="note" data-i18n="bnc.coaxToolHint"></p></section>
   <section><h2 data-i18n="side.sel">Sélection</h2><div id="insp"></div></section>
 </aside>
 <main id="vp" data-tool="select"><div id="world"><svg id="cables" xmlns="http://www.w3.org/2000/svg"></svg></div></main>
@@ -319,8 +329,8 @@ dialog::backdrop { background: rgba(8, 12, 16, .45); }
 <script>'use strict';
 /* PocketBench — utilities */
 const PB = window.PB = {};
-PB.VERSION = '1.0.0';
-PB.BUILD = '2026-11-04';
+PB.VERSION = '1.1.0';
+PB.BUILD = '2026-11-05';
 
 PB.clamp = (x, a, b) => (x < a ? a : x > b ? b : x);
 PB.gauss = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
@@ -485,6 +495,131 @@ PB.t = (k, vars) => {
   if (vars) for (const v in vars) s = s.replace('{' + v + '}', vars[v]);
   return s;
 };
+
+'use strict';
+/* PocketBench — synthesized sound effects (no audio files: everything is built with Web Audio) */
+(function () {
+  const S = PB.sfx = { on: true, vol: 0.7, fans: true };
+  let C = null, master = null, noise = null;
+  const last = {}, tones = new Map(), fans = new Map();
+  const rnd = (a, b) => a + Math.random() * (b - a);
+  function ctx() {
+    if (!S.on) return null;
+    if (!C) {
+      const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
+      try { C = new AC(); } catch (e) { return null; }
+      master = C.createGain(); master.gain.value = S.vol; master.connect(C.destination);
+      const n = C.sampleRate; noise = C.createBuffer(1, n, n); const d = noise.getChannelData(0);
+      for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    }
+    if (C.state === 'suspended') C.resume();
+    return C;
+  }
+  const busy = (k, ms) => { const n = performance.now(); if (last[k] && n - last[k] < ms) return true; last[k] = n; return false; };
+  /* filtered noise burst */
+  function burst(t0, o) {
+    const src = C.createBufferSource(); src.buffer = noise; src.playbackRate.value = rnd(0.85, 1.15);
+    const f = C.createBiquadFilter(); f.type = o.type || 'bandpass'; f.frequency.setValueAtTime(o.f, t0); if (o.f2) f.frequency.exponentialRampToValueAtTime(o.f2, t0 + o.dur); f.Q.value = o.q || 1;
+    const g = C.createGain(); g.gain.setValueAtTime(1e-4, t0); g.gain.exponentialRampToValueAtTime(o.g, t0 + (o.a || 0.0006)); g.gain.exponentialRampToValueAtTime(1e-4, t0 + o.dur);
+    src.connect(f); f.connect(g); g.connect(master); src.start(t0, rnd(0, 0.6)); src.stop(t0 + o.dur + 0.03);
+  }
+  /* enveloped oscillator */
+  function osc(t0, o) {
+    const s = C.createOscillator(); s.type = o.type || 'sine'; s.frequency.setValueAtTime(o.f, t0); if (o.f2) s.frequency.exponentialRampToValueAtTime(o.f2, t0 + o.dur);
+    const g = C.createGain(); g.gain.setValueAtTime(1e-4, t0); g.gain.exponentialRampToValueAtTime(o.g, t0 + (o.a || 0.001)); g.gain.exponentialRampToValueAtTime(1e-4, t0 + o.dur);
+    let out = g;
+    if (o.lp) { const f = C.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = o.lp; g.connect(f); out = f; }
+    s.connect(g); out.connect(master); s.start(t0); s.stop(t0 + o.dur + 0.03);
+  }
+  S.unlock = () => { if (S.on) ctx(); };
+  S.setVol = (v) => { S.vol = v; if (master) master.gain.setTargetAtTime(v, C.currentTime, 0.02); };
+  S.setOn = (on) => { S.on = on; if (!on) { tones.forEach((_, k) => S.toneOff(k)); fans.forEach((_, k) => S.fan(k, false)); } };
+
+  /* rubber-dome instrument key (press / release) */
+  S.key = (kind) => {
+    if (!ctx() || busy('key', 15)) return; const t = C.currentTime;
+    if (kind === 'power') {
+      burst(t, { type: 'lowpass', f: 1300, q: 0.7, g: 0.42, dur: 0.05 });
+      osc(t, { f: 95, f2: 60, g: 0.3, dur: 0.08 });
+      S.relay(0.14); S.relay(0.21);
+      return;
+    }
+    burst(t, { f: rnd(2100, 2700), q: 1.3, g: 0.2, dur: 0.018 });
+    osc(t, { f: rnd(150, 190), f2: 110, g: 0.11, dur: 0.03 });
+  };
+  S.keyUp = () => { if (!ctx() || busy('keyup', 15)) return; const t = C.currentTime; burst(t, { f: rnd(2800, 3400), q: 1.6, g: 0.07, dur: 0.012 }); };
+  /* knob detent */
+  S.tick = () => {
+    if (!ctx() || busy('tick', 16)) return; const t = C.currentTime;
+    burst(t, { type: 'highpass', f: rnd(3200, 4200), q: 0.8, g: 0.09, dur: 0.006 });
+    burst(t, { f: rnd(1500, 1900), q: 3, g: 0.05, dur: 0.005 });
+  };
+  /* small signal relay inside an instrument */
+  S.relay = (delay = 0) => {
+    if (!ctx()) return; const t = C.currentTime + delay;
+    burst(t, { type: 'highpass', f: 2300, q: 0.9, g: 0.16, dur: 0.005 });
+    burst(t + 0.006, { type: 'highpass', f: 3000, q: 0.9, g: 0.09, dur: 0.004 });
+    osc(t, { f: rnd(1100, 1400), g: 0.025, dur: 0.012 });
+  };
+  /* 4 mm banana plug pushed in / pulled out */
+  S.plug = (delay = 0) => {
+    if (!ctx()) return; const t = C.currentTime + delay;
+    burst(t, { f: 1400, f2: 3200, q: 1.1, g: 0.09, dur: 0.05 });
+    burst(t + 0.045, { f: rnd(4000, 4700), q: 5, g: 0.32, dur: 0.012 });
+    osc(t + 0.045, { f: rnd(2900, 3300), g: 0.035, dur: 0.06 });
+    osc(t + 0.045, { f: 210, f2: 140, g: 0.09, dur: 0.04 });
+  };
+  S.unplug = () => {
+    if (!ctx()) return; const t = C.currentTime;
+    burst(t, { f: rnd(3300, 3800), q: 4, g: 0.24, dur: 0.01 });
+    burst(t + 0.01, { f: 2600, f2: 1200, q: 1.1, g: 0.08, dur: 0.045 });
+  };
+  /* BNC bayonet: push, quarter turn, lock */
+  S.bnc = (delay = 0) => {
+    if (!ctx()) return; const t = C.currentTime + delay;
+    burst(t, { f: 3000, q: 3, g: 0.2, dur: 0.009 });
+    burst(t + 0.012, { f: 1800, f2: 3600, q: 1.4, g: 0.06, dur: 0.07 });
+    burst(t + 0.085, { type: 'highpass', f: 4200, q: 1, g: 0.3, dur: 0.007 });
+    osc(t + 0.085, { f: 3700, g: 0.03, dur: 0.05 });
+  };
+  /* component leads / wire pushed into the breadboard, and pulled out */
+  S.board = (legs = 2) => {
+    if (!ctx()) return; const t = C.currentTime;
+    for (let i = 0; i < legs; i++) { burst(t + i * 0.035, { f: rnd(1900, 2400), q: 2, g: 0.15, dur: 0.02 }); osc(t + i * 0.035, { f: 320, f2: 200, g: 0.04, dur: 0.02 }); }
+  };
+  S.wire = () => { if (!ctx()) return; const t = C.currentTime; burst(t, { f: rnd(2400, 2900), q: 2.2, g: 0.12, dur: 0.013 }); };
+  S.pull = () => { if (!ctx()) return; const t = C.currentTime; burst(t, { f: 1600, f2: 1100, q: 2, g: 0.12, dur: 0.03 }); };
+  /* piezo beeps of the instruments */
+  S.beep = (f = 2730, dur = 0.09, delay = 0) => { if (!ctx()) return; osc(C.currentTime + delay, { type: 'square', f, g: 0.045, dur, a: 0.002, lp: 6000 }); };
+  S.err = () => { if (busy('err', 400)) return; S.beep(2400, 0.07); S.beep(2400, 0.07, 0.11); };
+  /* continuous tone (continuity tester) */
+  S.toneOn = (id, f = 2730) => {
+    if (!ctx() || tones.has(id)) return;
+    const s = C.createOscillator(); s.type = 'square'; s.frequency.value = f;
+    const lp = C.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 6000;
+    const g = C.createGain(); g.gain.setValueAtTime(1e-4, C.currentTime); g.gain.exponentialRampToValueAtTime(0.035, C.currentTime + 0.005);
+    s.connect(lp); lp.connect(g); g.connect(master); s.start(); tones.set(id, { s, g });
+  };
+  S.toneOff = (id) => {
+    const x = tones.get(id); if (!x) return; tones.delete(id);
+    try { x.g.gain.setTargetAtTime(1e-4, C.currentTime, 0.004); x.s.stop(C.currentTime + 0.05); } catch (e) {}
+  };
+  /* cooling fans (filtered noise + motor hum) */
+  S.fan = (id, on, level = 1) => {
+    if (on && (!S.fans || !ctx())) return;
+    const ex = fans.get(id);
+    if (!on) { if (ex) { fans.delete(id); try { ex.g.gain.setTargetAtTime(1e-4, C.currentTime, 0.5); ex.src.stop(C.currentTime + 3); ex.hum.stop(C.currentTime + 3); } catch (e) {} } return; }
+    if (ex) return;
+    const src = C.createBufferSource(); src.buffer = noise; src.loop = true;
+    const lp = C.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 650; lp.Q.value = 0.5;
+    const bp = C.createBiquadFilter(); bp.type = 'peaking'; bp.frequency.value = 240; bp.gain.value = 6; bp.Q.value = 1.5;
+    const hum = C.createOscillator(); hum.frequency.value = rnd(96, 104); const hg = C.createGain(); hg.gain.value = 0.25;
+    const g = C.createGain(); g.gain.setValueAtTime(1e-4, C.currentTime); g.gain.exponentialRampToValueAtTime(0.02 * level, C.currentTime + 1.8);
+    src.connect(lp); lp.connect(bp); bp.connect(g); hum.connect(hg); hg.connect(g); g.connect(master);
+    src.start(); hum.start(); fans.set(id, { src, hum, g });
+  };
+  S.setFans = (on) => { S.fans = on; if (!on) fans.forEach((_, k) => S.fan(k, false)); };
+})();
 
 'use strict';
 /* PocketBench — circuit engine
@@ -982,10 +1117,11 @@ PB.t = (k, vars) => {
           ev.stopPropagation(); ev.preventDefault();
           this.rt.keyDown = { name: k.dataset.k, t: performance.now() };
           k.classList.add('down');
+          PB.sfx.key(k.dataset.k === 'power' ? 'power' : 'k');
           this.keyDownHook && this.keyDownHook(k.dataset.k);
           const up = () => {
             window.removeEventListener('pointerup', up);
-            k.classList.remove('down');
+            k.classList.remove('down'); if (k.dataset.k !== 'power') PB.sfx.keyUp();
             const kd = this.rt.keyDown; this.rt.keyDown = null;
             if (!kd) return;
             const held = performance.now() - kd.t;
@@ -1027,18 +1163,23 @@ PB.t = (k, vars) => {
       el.addEventListener('pointerout', (ev) => { if (ev.target.closest('.jack')) this.app.hideTip(); });
     }
     turn(name, s) {
+      PB.sfx.tick();
       this.rt.knobAng[name] = (this.rt.knobAng[name] || 0) + s * 15;
       const kn = this.knobs[name]; if (kn) kn.querySelector('.kcap').style.transform = `rotate(${this.rt.knobAng[name]}deg)`;
       if (!this.state.on || this.booting()) return;
       this.knob(name, s); this.changed(); this.app.markSave();
     }
-    pushKnob(name) { if (!this.state.on || this.booting()) return; this.knobPush(name); this.changed(); this.app.markSave(); }
+    pushKnob(name) { PB.sfx.key('k'); if (!this.state.on || this.booting()) return; this.knobPush(name); this.changed(); this.app.markSave(); }
     booting() { return performance.now() - this.rt.boot < this.bootMs; }
     get bootMs() { return 1400; }
+    get fanLevel() { return 0; }
+    get bootBeep() { return 0; }
     togglePower() {
       this.state.on = !this.state.on;
       this.rt.boot = performance.now();
       if (this.state.on) this.powerOn && this.powerOn(); else this.powerOff && this.powerOff();
+      if (this.fanLevel) PB.sfx.fan(this.id, this.state.on, this.fanLevel);
+      if (this.state.on && this.bootBeep) { const b = this.rt.boot; setTimeout(() => { if (this.state.on && this.rt.boot === b) PB.sfx.beep(this.bootBeep, 0.12); }, this.bootMs); }
       this.app.dirty(); this.changed(); this.app.markSave();
     }
     changed() { this.rt.needDraw = true; }
@@ -1094,7 +1235,8 @@ Object.assign(PB.I18N.fr, {
   'tb.new': 'Nouveau', 'tb.open': 'Ouvrir', 'tb.save': 'Enregistrer', 'tb.import': 'Importer', 'tb.export': 'Exporter', 'tb.undo': 'Annuler', 'tb.redo': 'Rétablir', 'tb.fit': 'Ajuster', 'tb.settings': 'Paramètres', 'tb.name': 'Nom du projet',
   'side.parts': 'Composants', 'side.wires': 'Fils de la plaque', 'side.cables': 'Câbles banane', 'side.bnc': 'Liaisons BNC', 'side.sel': 'Sélection', 'side.value': 'Valeur',
   'p.R': 'Résistance', 'p.C': 'Condensateur', 'p.L': 'Bobine', 'p.D': 'Diode', 'p.LED': 'LED', 'p.Z': 'Zener', 'p.OA': 'AOP µA741', 'p.POT': 'Potentiomètre',
-  'bnc.adapter': 'Adaptateur BNC → banane', 'bnc.coax': 'Câble coaxial BNC–BNC', 'bnc.adapterHint': 'Puis clique une prise BNC pour y fixer (ou retirer) un adaptateur.', 'bnc.coaxHint': 'Clique deux prises BNC pour les relier par un câble coaxial.',
+  'bnc.adapter': 'Adaptateur BNC → banane', 'bnc.coax': 'Câble coaxial BNC–BNC', 'bnc.adapterHint': 'Puis clique une prise BNC pour y fixer (ou retirer) un adaptateur ; les câbles banane qui en partent ne sont pas blindés.', 'bnc.coaxHint': 'Clique deux prises BNC pour les relier par un câble coaxial.', 'bnc.coaxTool': 'Câble coaxial', 'bnc.coaxToolHint': 'Blindé. Clique une prise BNC, puis une autre prise BNC (coax BNC–BNC) ou une borne banane (coax BNC → fiches rouge + noire).', 'hint.coaxStart': 'Câble coaxial : clique la prise BNC de départ.', 'hint.coaxGnd': 'Clique la borne pour la fiche noire (masse ⏚) — clic droit pour la laisser libre, Échap pour annuler.', 'err.coaxStart': 'Un câble coaxial part d’une prise BNC.', 'sel.coaxban': 'Câble coaxial BNC → banane', 'sel.gnd': 'Masse', 'sel.free': 'libre',
+  'set.audio': 'Son', 'set.sound': 'Effets sonores', 'set.soundD': 'Touches, crans des boutons, relais, fiches banane et BNC, composants, bips des appareils.', 'set.vol': 'Volume', 'set.fans': 'Ventilateurs des appareils', 'set.fansD': 'Léger souffle de ventilation des appareils allumés.',
   'sel.none': 'Clique un composant, un fil ou un câble pour le modifier.', 'sel.delete': 'Supprimer', 'sel.power': 'Puissance', 'sel.type': 'Type', 'sel.ceramic': 'Céramique', 'sel.elec': 'Électrolytique', 'sel.rs': 'Résistance série', 'sel.model': 'Modèle', 'sel.pos': 'Position du curseur', 'sel.color': 'Couleur', 'sel.pins': 'Brochage',
   'sel.oaPins': '1 offset · 2 IN− · 3 IN+ · 4 V− · 5 offset · 6 OUT · 7 V+ · 8 NC', 'sel.from': 'De', 'sel.to': 'À', 'sel.cable': 'Câble banane', 'sel.coax': 'Câble coaxial', 'sel.wire': 'Fil', 'sel.adapter': 'Adaptateur BNC → banane',
   'hint.idle': 'Clique une borne pour tirer un câble, un trou de la plaque pour poser un fil. Glisser le fond : déplacer · molette : zoom.',
@@ -1114,7 +1256,8 @@ Object.assign(PB.I18N.en, {
   'tb.new': 'New', 'tb.open': 'Open', 'tb.save': 'Save', 'tb.import': 'Import', 'tb.export': 'Export', 'tb.undo': 'Undo', 'tb.redo': 'Redo', 'tb.fit': 'Fit', 'tb.settings': 'Settings', 'tb.name': 'Project name',
   'side.parts': 'Components', 'side.wires': 'Board wires', 'side.cables': 'Banana leads', 'side.bnc': 'BNC links', 'side.sel': 'Selection', 'side.value': 'Value',
   'p.R': 'Resistor', 'p.C': 'Capacitor', 'p.L': 'Inductor', 'p.D': 'Diode', 'p.LED': 'LED', 'p.Z': 'Zener', 'p.OA': 'µA741 op-amp', 'p.POT': 'Potentiometer',
-  'bnc.adapter': 'BNC → banana adapter', 'bnc.coax': 'BNC–BNC coaxial cable', 'bnc.adapterHint': 'Then click a BNC socket to fit (or remove) an adapter.', 'bnc.coaxHint': 'Click two BNC sockets to join them with a coaxial cable.',
+  'bnc.adapter': 'BNC → banana adapter', 'bnc.coax': 'BNC–BNC coaxial cable', 'bnc.adapterHint': 'Then click a BNC socket to fit (or remove) an adapter; banana leads from it are unshielded.', 'bnc.coaxHint': 'Click two BNC sockets to join them with a coaxial cable.', 'bnc.coaxTool': 'Coaxial cable', 'bnc.coaxToolHint': 'Shielded. Click a BNC socket, then another BNC socket (BNC–BNC coax) or a banana terminal (BNC → red + black plugs).', 'hint.coaxStart': 'Coaxial cable: click the starting BNC socket.', 'hint.coaxGnd': 'Click the terminal for the black (ground ⏚) plug — right-click to leave it free, Esc to cancel.', 'err.coaxStart': 'A coaxial cable starts from a BNC socket.', 'sel.coaxban': 'BNC → banana coaxial cable', 'sel.gnd': 'Ground', 'sel.free': 'free',
+  'set.audio': 'Sound', 'set.sound': 'Sound effects', 'set.soundD': 'Keys, knob detents, relays, banana and BNC plugs, components, instrument beeps.', 'set.vol': 'Volume', 'set.fans': 'Instrument fans', 'set.fansD': 'Soft fan noise from instruments that are switched on.',
   'sel.none': 'Click a component, wire or cable to edit it.', 'sel.delete': 'Delete', 'sel.power': 'Power rating', 'sel.type': 'Type', 'sel.ceramic': 'Ceramic', 'sel.elec': 'Electrolytic', 'sel.rs': 'Series resistance', 'sel.model': 'Model', 'sel.pos': 'Wiper position', 'sel.color': 'Colour', 'sel.pins': 'Pinout',
   'sel.oaPins': '1 offset · 2 IN− · 3 IN+ · 4 V− · 5 offset · 6 OUT · 7 V+ · 8 NC', 'sel.from': 'From', 'sel.to': 'To', 'sel.cable': 'Banana lead', 'sel.coax': 'Coaxial cable', 'sel.wire': 'Wire', 'sel.adapter': 'BNC → banana adapter',
   'hint.idle': 'Click a terminal to run a lead, a board hole to lay a wire. Drag the background to pan · wheel to zoom.',
@@ -1140,6 +1283,8 @@ Object.assign(PB.I18N.en, {
     get kind() { return 'hmp'; }
     get W() { return 855; } get H() { return 230; }
     title() { return 'HMP2030'; }
+    get fanLevel() { return 0.7; }
+    get bootBeep() { return 3100; }
     subtitle() { return PB.t('dev.psu'); }
     defaults() {
       return {
@@ -1201,7 +1346,7 @@ Object.assign(PB.I18N.en, {
             return;
           }
           if (s.fuseArm) { c.fuse = !c.fuse; c.trip = ''; this.app.dirty(); return; }
-          c.sel = !c.sel; c.trip = ''; this.app.dirty(); return;
+          c.sel = !c.sel; c.trip = ''; if (s.out) PB.sfx.relay(); this.app.dirty(); return;
         }
         case 'voltage': case 'current': {
           const w = k === 'voltage' ? 'V' : 'I';
@@ -1211,7 +1356,7 @@ Object.assign(PB.I18N.en, {
           s.edit = { what: w, ch: null, val: 0, digit: w === 'V' ? 0 : -1 };
           return;
         }
-        case 'output': s.out = !s.out; s.ch.forEach((c) => (c.trip = '')); this.app.dirty(); return;
+        case 'output': PB.sfx.relay(); if (s.ch.some((c) => c.sel)) PB.sfx.relay(0.02); s.out = !s.out; s.ch.forEach((c) => (c.trip = '')); this.app.dirty(); return;
         case 'fuse': s.fuseArm = !s.fuseArm; if (s.fuseArm) s.edit = null; return;
         case 'track': s.track = !s.track; return;
         case 'remote': s.remote = !s.remote; return;
@@ -1292,8 +1437,8 @@ Object.assign(PB.I18N.en, {
         const ps = sol.psu.get(`hmp${n}`);
         const cc = ps && ps.mode === 'CC';
         this.rt.meas[n] = { v, i, cc };
-        if (cc && c.fuse) { c.trip = 'FUSE'; this.app.dirty(); }
-        if (c.v > c.ovp) { c.trip = 'OVP'; this.app.dirty(); }
+        if (cc && c.fuse) { c.trip = 'FUSE'; PB.sfx.relay(); PB.sfx.beep(3100, 0.25); this.app.dirty(); }
+        if (c.v > c.ovp) { c.trip = 'OVP'; PB.sfx.relay(); PB.sfx.beep(3100, 0.25); this.app.dirty(); }
       }
       this.changed();
     }
@@ -1434,6 +1579,7 @@ Object.assign(PB.I18N.en, {
     get kind() { return 'hmc'; }
     get W() { return 666; } get H() { return 268; }
     title() { return 'HMC8012'; }
+    get bootBeep() { return 2730; }
     subtitle() { return PB.t('dev.dmm') + ' ' + this.num; }
     defaults() {
       return {
@@ -1469,6 +1615,7 @@ Object.assign(PB.I18N.en, {
       s += LBL('SENSE<br>4W Ω', 438, 236, 'xxs center') + LBL('max.<br>10 A', 530, 238, 'xxs') + LBL('CAT II<br>600 V', 596, 238, 'xxs');
       return s;
     }
+    powerOff() { PB.sfx.toneOff(this.id); }
     powerOn() { this.state.hold = false; this.state.nul.on = false; this.state.menu = null; this.rt.hist = []; }
 
     /* ---------- menus ---------- */
@@ -1544,8 +1691,8 @@ Object.assign(PB.I18N.en, {
       if (s.page === 0) {
         const R = RANGES[f];
         if (i === 0) { s.auto[f] = !s.auto[f]; this.app.dirty(); }
-        else if (i === 1) { s.auto[f] = false; s.rng[f] = Math.min(R.length - 1, s.rng[f] + 1); this.app.dirty(); }
-        else if (i === 2) { s.auto[f] = false; s.rng[f] = Math.max(0, s.rng[f] - 1); this.app.dirty(); }
+        else if (i === 1) { s.auto[f] = false; if (s.rng[f] < R.length - 1) PB.sfx.relay(); s.rng[f] = Math.min(R.length - 1, s.rng[f] + 1); this.app.dirty(); }
+        else if (i === 2) { s.auto[f] = false; if (s.rng[f] > 0) PB.sfx.relay(); s.rng[f] = Math.max(0, s.rng[f] - 1); this.app.dirty(); }
         else if (i === 3 && SECOND[f]) s.menu = 'second';
         else if (i === 3 && f === 'OHM') s.ohm4w = !s.ohm4w;
         else if (i === 4 && f !== 'CAP') s.page = 1;
@@ -1559,7 +1706,7 @@ Object.assign(PB.I18N.en, {
       else if (i === 4) s.page = 0;
     }
     popup(list, cur, cb) { this.rt.pop = { list, idx: Math.max(0, list.indexOf(cur)), cb }; }
-    setFn(f) { const s = this.state; if (s.fn !== f) { s.fn = f; s.page = 0; s.menu = null; s.nul.on = false; s.acdc = false; s.power = false; this.rt.hist = []; this.rt.pop = null; this.rt.disp = null; this.app.dirty(); } else if (f === 'OHM') { s.ohm4w = !s.ohm4w; } }
+    setFn(f) { const s = this.state; if (s.fn !== f) { PB.sfx.relay(); PB.sfx.relay(0.035); s.fn = f; s.page = 0; s.menu = null; s.nul.on = false; s.acdc = false; s.power = false; this.rt.hist = []; this.rt.pop = null; this.rt.disp = null; this.app.dirty(); } else if (f === 'OHM') { s.ohm4w = !s.ohm4w; } }
     press(k, held) {
       const s = this.state;
       this.rt.info = null;
@@ -1680,7 +1827,7 @@ Object.assign(PB.I18N.en, {
       if ((s.fn === 'ACV' && s.second.ACV === 'DC V')) upd('DCV', r.dcv);
       if (s.fn === 'DCI' && s.second.DCI === 'AC I') upd('ACI', r.aci);
       if (s.fn === 'ACI' && s.second.ACI === 'DC I') upd('DCI', r.dci);
-      if (changed) this.app.dirty();
+      if (changed) { this.app.dirty(); const n = performance.now(); if (!this.rt.lastRel || n - this.rt.lastRel > 120) { this.rt.lastRel = n; PB.sfx.relay(); } }
     }
     /* noisy reading of a quantity at current range */
     reading(fn, rawv) {
@@ -1765,6 +1912,9 @@ Object.assign(PB.I18N.en, {
       const hz = s.fn === 'CONT' ? 30 : s.fn === 'DIODE' ? 10 : Math.min(RATE_HZ[s.rate], 25);
       if (!this.rt.lastMeas || now - this.rt.lastMeas > 1000 / hz) {
         this.rt.lastMeas = now;
+        const beepOn = !!(s.on && s.beep && this.rt.disp && this.rt.disp.beep && s.fn === 'CONT');
+        if (beepOn) PB.sfx.toneOn(this.id); else PB.sfx.toneOff(this.id);
+        if (s.lim.on && s.lim.beep && this.rt.disp && this.rt.disp.main && isFinite(this.rt.disp.main.val) && (this.rt.disp.main.val > s.lim.hi || this.rt.disp.main.val < s.lim.lo) && (!this.rt.limBeep || now - this.rt.limBeep > 700)) { this.rt.limBeep = now; PB.sfx.beep(2730, 0.08); }
         if (!s.hold && (s.trigMode === 'Auto' || (this.rt.trigFlash && now - this.rt.trigFlash < 1500))) {
           const d = this.compute();
           if (d) {
@@ -1905,6 +2055,8 @@ Object.assign(PB.I18N.en, {
     get W() { return 855; } get H() { return 230; }
     title() { return this.model; }
     subtitle() { return PB.t('dev.gen'); }
+    get fanLevel() { return 0.45; }
+    get bootBeep() { return 2900; }
     get fmax() { const k = this.model === 'HMF2525' ? 0.5 : 1; return { sine: 50e6 * k, square: 50e6 * k, triangle: 10e6 * k, pulse: 25e6 * k, arb: 25e6 * k }[this.state.wave]; }
     defaults() {
       return {
@@ -1975,7 +2127,7 @@ Object.assign(PB.I18N.en, {
         case 'hwidth': s.pduty = cl(v * s.freq * 100, 0.01, 99.99); break;
         case 'lwidth': s.pduty = cl(100 - v * s.freq * 100, 0.01, 99.99); break;
       }
-      if (lim) this.rt.err = performance.now();
+      if (lim) { this.rt.err = performance.now(); if (this.state.snd) PB.sfx.err(); }
       this.app.dirty();
     }
     activeParam() {
@@ -2009,7 +2161,7 @@ Object.assign(PB.I18N.en, {
     mset(key, v) {
       const s = this.state;
       if (key === 'slot') { this.rt.slot = PB.clamp(Math.round(v), 0, 3); return; }
-      if (key === 'load') { s.load = v; this.pset('ampl', s.ampl); this.pset('offset', s.offset); return; }
+      if (key === 'load') { if (s.load !== v) PB.sfx.relay(); s.load = v; this.pset('ampl', s.ampl); this.pset('offset', s.offset); return; }
       if (key === 'snd') { s.snd = v === 'On'; return; } if (key === 'lang') { s.lang = v; return; } if (key === 'clk') return;
       const [o, f] = key.split('.'); const obj = o === 'm' ? s.mod : o === 'w' ? s.sweep : s.burst;
       const lims = { 'm.depth': [0, 100], 'm.dev': [0, 25e6], 'm.pdev': [0, 360], 'm.pwm': [0, 49], 'm.hop': [1e-3, 25e6], 'm.rate': [1e-3, 1e5], 'm.f': [1e-3, 5e4], 'w.start': [1e-3, this.fmax], 'w.stop': [1e-3, this.fmax], 'w.time': [1e-3, 500], 'b.n': [1, 65535], 'b.period': [1e-6, 500], 'b.phase': [-360, 360] };
@@ -2034,7 +2186,7 @@ Object.assign(PB.I18N.en, {
           s.wave = { wsine: 'sine', wsquare: 'square', wtri: 'triangle', wpulse: 'pulse', warb: 'arb' }[k];
           if (s.freq > this.fmax) s.freq = this.fmax;
           s.menu = null; s.sel = 0; this.rt.entry = null; if (s.wave !== 'pulse' && s.mod.type === 'PWM') s.mod.type = 'AM'; if (s.wave === 'pulse') s.mod.type = s.mod.on ? 'PWM' : s.mod.type; this.app.dirty(); return;
-        case 'output': s.out = !s.out; this.app.dirty(); return;
+        case 'output': PB.sfx.relay(); s.out = !s.out; this.app.dirty(); return;
         case 'offset': s.offOn = !s.offOn; if (s.offOn && !s.menu) { s.sel = 2; s.alt[2] = 0; } this.app.dirty(); return;
         case 'invert': s.inv = !s.inv; this.app.dirty(); return;
         case 'mod': case 'sweep': case 'burst': {
@@ -2313,6 +2465,7 @@ Object.assign(PB.I18N.en, {
     subtitle() { return PB.t('dev.scope'); }
     get is2024() { return this.model === 'HMO2024'; }
     get bootMs() { return 2600; }
+    get fanLevel() { return 1; }
     defaults() {
       const ch = (i) => ({ on: i === 0, vdiv: 1, pos: 0, cpl: 'DC', gnd: false, z50: false, bwl: false, inv: false, probe: 1, offset: 0, fine: false, name: '' });
       return {
@@ -2448,6 +2601,7 @@ Object.assign(PB.I18N.en, {
     autoset() {
       const s = this.state, D = this.rt.chData;
       if (!D) return;
+      [0, 0.07, 0.16, 0.22, 0.34, 0.41, 0.55].forEach((d) => PB.sfx.relay(d + Math.random() * 0.02));
       let act = [];
       for (let i = 0; i < 4; i++) { const d = D[i]; if (d.max - d.min > 4e-3 || Math.abs(d.mean) > 4e-3) act.push(i); }
       if (!act.length) { const f = s.ch.findIndex((c) => c.on); act = [f >= 0 ? f : 0]; }
@@ -2493,6 +2647,8 @@ Object.assign(PB.I18N.en, {
           if (s.sel === 4) { s.math.vdiv = this.stepSeq(VDIVS.concat([20, 50]), s.math.vdiv, d); return; }
           const c = s.ch[s.sel]; if (!c || !c.on) return;
           const max = c.z50 ? 1 : 10;
+          const grp = (v) => (v / c.probe <= 0.05 ? 0 : v / c.probe < 1 ? 1 : 2), g0 = grp(c.vdiv);
+          setTimeout(() => { if (grp(c.vdiv) !== g0) PB.sfx.relay(); }, 0);
           if (c.fine) c.vdiv = PB.clamp(+(c.vdiv * Math.pow(1.02, -d)).toPrecision(3), 1e-3, max);
           else c.vdiv = PB.clamp(this.stepSeq(VDIVS, c.vdiv, -d), 1e-3, max);
           this.resetAcq(); return;
@@ -2568,6 +2724,7 @@ Object.assign(PB.I18N.en, {
       const s = this.state;
       if (!s.menu) {
         const c = s.ch[s.sel]; if (!c || !c.on) return;
+        if (i === 0 || i === 1 || (i === 2 && this.is2024)) PB.sfx.relay();
         if (i === 0) c.cpl = c.cpl === 'DC' ? 'AC' : 'DC';
         else if (i === 1) c.gnd = !c.gnd;
         else if (i === 2 && this.is2024) { c.z50 = !c.z50; if (c.z50) c.vdiv = Math.min(c.vdiv, 1); this.app.dirty(); }
@@ -3192,7 +3349,8 @@ Object.assign(PB.I18N.en, {
 
   class App {
     constructor() {
-      this.settings = Object.assign({ theme: 'auto', lang: 'fr' }, this.lsGet('pocketbench.settings') || {});
+      this.settings = Object.assign({ theme: 'auto', lang: 'fr', sound: true, vol: 0.7, fans: true }, this.lsGet('pocketbench.settings') || {});
+      PB.sfx.on = this.settings.sound; PB.sfx.vol = this.settings.vol; PB.sfx.fans = this.settings.fans;
       PB.lang = this.settings.lang;
       this.view = { x: 20, y: 20, z: 0.5 };
       this.ui = { wireColor: 'red', banColor: 'red', place: null };
@@ -3238,8 +3396,8 @@ Object.assign(PB.I18N.en, {
     }
     defaultLayout() {
       const D = this.devices;
-      D.hmo.setPos(0, 0); D.hmf.setPos(890, 0); D.hmp.setPos(890, 270); D.dmm1.setPos(1780, 0); D.dmm2.setPos(1780, 300);
-      this.board.x = 900; this.board.y = 590; this.placeBoard();
+      D.hmo.setPos(0, 0); D.dmm1.setPos(890, 0); D.dmm2.setPos(890, 300); D.hmp.setPos(1591, 0); D.hmf.setPos(1591, 270);
+      this.board.x = 805; this.board.y = 600; this.placeBoard();
     }
     get devList() { return Object.values(this.devices); }
     refreshPorts() { this.ports = new Map(); this.world.querySelectorAll('.jack[data-port]').forEach((el) => this.ports.set(el.dataset.port, el)); }
@@ -3392,6 +3550,7 @@ Object.assign(PB.I18N.en, {
         const a = this.portPos(c.a), b = this.portPos(c.b); if (!a || !b) continue;
         const d = this.cablePath(a, b, c.kind === 'coax');
         const sel = this.sel && this.sel.id === c.id ? ' sel' : '';
+        if (c.kind === 'coaxban') { s += this.coaxBanSvg(c, a, b, c.g ? this.portPos(c.g) : null, sel); continue; }
         if (c.kind === 'coax') {
           s += `<g class="cable coax${sel}" data-item="${c.id}" data-kind="cable"><path d="${d}" class="co"/><path d="${d}" class="ci"/>`;
           for (const [p, id] of [[a, c.a], [b, c.b]]) s += `<g data-plug="${id}"><circle cx="${p.x}" cy="${p.y}" r="17" class="bncplug"/><circle cx="${p.x}" cy="${p.y}" r="9" class="bncplug2"/></g>`;
@@ -3402,11 +3561,32 @@ Object.assign(PB.I18N.en, {
         }
         s += '</g>';
       }
+      if (this.pend && this.pend.kind === 'coaxT') {
+        const a = this.portPos(this.pend.from), b = this.portPos(this.pend.sig);
+        if (a && b) s += this.coaxBanSvg({ id: '_pv', a: this.pend.from, b: this.pend.sig }, a, b, null, ' ghost', this.mouseW);
+      }
       if (this.pend && this.pend.kind === 'cable' && this.mouseW) {
         const a = this.portPos(this.pend.from);
         if (a) { const coax = this.pend.bnc; s += `<path d="${this.cablePath(a, this.mouseW, coax)}" class="${coax ? 'pv coaxpv' : 'pv'}" stroke="${coax ? '#222' : BAN_C[this.ui.banColor]}"/><circle cx="${this.mouseW.x}" cy="${this.mouseW.y}" r="${coax ? 12 : 9}" class="pvend" fill="${coax ? '#bbb' : BAN_C[this.ui.banColor]}"/>`; }
       }
       this.cablesSvg.innerHTML = s + '</g>';
+    }
+    coaxBanSvg(c, a, b, gp, sel, mouse) {
+      const dx = b.x - a.x, dy = b.y - a.y, L = Math.hypot(dx, dy) || 1;
+      const k = Math.min(110, L * 0.3);
+      const J = { x: b.x - dx / L * k * 0.6, y: Math.max(a.y, b.y) + 40 };
+      const lead = (p, q) => `M${p.x},${p.y} C${p.x},${p.y + 30} ${q.x},${q.y + 30} ${q.x},${q.y}`;
+      const d = this.cablePath(a, J, true);
+      let s = `<g class="cable coax${sel}" data-item="${c.id}" data-kind="cable"><path d="${d}" class="co"/><path d="${d}" class="ci"/>`;
+      s += `<path d="${lead(J, b)}" class="bo"/><path d="${lead(J, b)}" stroke="${BAN_C.red}" class="bi"/>`;
+      const gq = gp || mouse || { x: J.x + 22, y: J.y + 60 };
+      s += `<path d="${lead(J, gq)}" class="bo"/><path d="${lead(J, gq)}" stroke="${BAN_C.black}" class="bi"${!gp && mouse ? ' stroke-dasharray="6 5"' : ''}/>`;
+      s += `<rect x="${J.x - 9}" y="${J.y - 6}" width="18" height="16" rx="4" class="split"/>`;
+      s += `<g data-plug="${c.a}"><circle cx="${a.x}" cy="${a.y}" r="17" class="bncplug"/><circle cx="${a.x}" cy="${a.y}" r="9" class="bncplug2"/></g>`;
+      s += `<g data-plug="${c.b}"><circle cx="${b.x}" cy="${b.y}" r="11" fill="${BAN_C.red}" class="plug"/><circle cx="${b.x}" cy="${b.y}" r="4.5" class="plughole"/></g>`;
+      if (gp) s += `<g data-plug="${c.g}"><circle cx="${gp.x}" cy="${gp.y}" r="11" fill="${BAN_C.black}" class="plug"/><circle cx="${gp.x}" cy="${gp.y}" r="4.5" class="plughole"/></g>`;
+      else s += `<circle cx="${gq.x}" cy="${gq.y}" r="9" fill="${BAN_C.black}" class="plug free"/>`;
+      return s + '</g>';
     }
     /* ---------- adapters ---------- */
     renderAdapters() {
@@ -3447,6 +3627,7 @@ Object.assign(PB.I18N.en, {
       this.sel = null; this.pend = null; this.hist = []; this.redoStack = [];
       this.applyProject();
       if (data.view) this.setView(data.view.x, data.view.y, data.view.z); else setTimeout(() => this.fit(), 30);
+      this.syncFans(); this.devList.forEach((d) => d.kind === 'hmc' && PB.sfx.toneOff(d.id));
       this.refreshTools();
       return true;
     }
@@ -3536,6 +3717,7 @@ Object.assign(PB.I18N.en, {
       $('#wireCols').addEventListener('click', (e) => { const b = e.target.closest('[data-wc]'); if (b) { this.ui.wireColor = b.dataset.wc; if (this.sel && this.sel.kind === 'wire') this.mutate(() => (this.findItem(this.sel).color = b.dataset.wc)); this.refreshTools(); } });
       $('#banCols').addEventListener('click', (e) => { const b = e.target.closest('[data-bc]'); if (b) { this.ui.banColor = b.dataset.bc; const it = this.sel && this.sel.kind === 'cable' && this.findItem(this.sel); if (it && it.kind === 'banana') this.mutate(() => (it.color = b.dataset.bc)); this.refreshTools(); } });
       $('#toolAdapter').addEventListener('click', () => this.setTool(this.tool === 'adapter' ? 'select' : 'adapter'));
+      $('#toolCoax').addEventListener('click', () => this.setTool(this.tool === 'coax' ? 'select' : 'coax'));
       document.addEventListener('keydown', (e) => this.onKey(e));
       document.addEventListener('keyup', (e) => { if (e.code === 'Space') { this.spaceDown = false; this.vp.classList.remove('grab'); } });
       $('#dlgSettings').addEventListener('close', () => this.markSave());
@@ -3591,6 +3773,7 @@ Object.assign(PB.I18N.en, {
       document.querySelectorAll('[data-wc]').forEach((b) => b.classList.toggle('on', b.dataset.wc === this.ui.wireColor));
       document.querySelectorAll('[data-bc]').forEach((b) => b.classList.toggle('on', b.dataset.bc === this.ui.banColor));
       $('#toolAdapter').classList.toggle('on', this.tool === 'adapter');
+      $('#toolCoax').classList.toggle('on', this.tool === 'coax');
       this.vp.dataset.tool = this.tool;
       // place options
       const po = $('#partOpts');
@@ -3607,7 +3790,7 @@ Object.assign(PB.I18N.en, {
       const vi = $('#placeVal'); if (vi) vi.addEventListener('change', () => { const v = PB.parseSI(vi.value); if (isFinite(v) && v > 0) { p.v = v; if (p.type === 'C') p.ckind = v >= 1e-6 ? 'elec' : 'cer'; if (p.type === 'L') p.rs = defRs(v); this.rememberPlace(); } this.refreshTools(); });
     }
     rememberPlace() { this.ui.lastPlace = this.ui.lastPlace || {}; this.ui.lastPlace[this.ui.place.type] = { ...this.ui.place }; }
-    setHint(k) { $('#hint').textContent = t(k || (this.pend ? (this.pend.kind === 'wire' ? 'hint.wire' : this.pend.kind === 'place2' ? 'hint.place2b' : this.pend.bnc ? 'hint.coax' : 'hint.cable') : this.tool === 'adapter' ? 'hint.adapter' : this.tool === 'place' ? (this.ui.place && this.ui.place.type === 'OA' ? 'hint.placeOA' : this.ui.place && this.ui.place.type === 'POT' ? 'hint.placePOT' : 'hint.place2') : 'hint.idle')); }
+    setHint(k) { $('#hint').textContent = t(k || (this.pend ? (this.pend.kind === 'wire' ? 'hint.wire' : this.pend.kind === 'place2' ? 'hint.place2b' : this.pend.kind === 'coaxT' ? 'hint.coaxGnd' : this.pend.bnc ? 'hint.coax' : 'hint.cable') : this.tool === 'adapter' ? 'hint.adapter' : this.tool === 'coax' ? 'hint.coaxStart' : this.tool === 'place' ? (this.ui.place && this.ui.place.type === 'OA' ? 'hint.placeOA' : this.ui.place && this.ui.place.type === 'POT' ? 'hint.placePOT' : 'hint.place2') : 'hint.idle')); }
     toast(msg, kind) { const el = $('#toast'); el.textContent = msg; el.className = 'show ' + (kind || ''); clearTimeout(this.tt); this.tt = setTimeout(() => (el.className = ''), 2600); }
     showTip(el, txt) { const tip = $('#tip'); const r = el.getBoundingClientRect(); tip.textContent = txt; tip.style.left = r.left + r.width / 2 + 'px'; tip.style.top = r.top - 8 + 'px'; tip.classList.add('show'); }
     hideTip() { $('#tip').classList.remove('show'); }
@@ -3621,10 +3804,13 @@ Object.assign(PB.I18N.en, {
         e.preventDefault(); const f = Math.exp(-(e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY) * (e.ctrlKey ? 0.01 : 0.0015)); this.zoomAt(e.clientX, e.clientY, f); }, { passive: false });
       vp.addEventListener('contextmenu', (e) => {
         e.preventDefault();
+        if (this.pend && this.pend.kind === 'coaxT') { this.finishCoaxBan(null); return; }
         if (this.pend) { this.cancelPend(); return; }
         const it = e.target.closest('[data-item]'); if (it) { this.deleteItem({ kind: it.dataset.kind, id: it.dataset.item }); return; }
         if (this.tool !== 'select') this.setTool('select');
       });
+      const unlock = () => { PB.sfx.unlock(); this.syncFans(); window.removeEventListener('pointerdown', unlock, true); window.removeEventListener('keydown', unlock, true); };
+      window.addEventListener('pointerdown', unlock, true); window.addEventListener('keydown', unlock, true);
       vp.addEventListener('pointerdown', (e) => {
         const target = e.target;
         if (e.button === 0 && target.closest('#cables') && !target.closest('[data-plug]')) {
@@ -3653,6 +3839,7 @@ Object.assign(PB.I18N.en, {
       });
       window.addEventListener('resize', () => this.devList.forEach((d) => (d.rt.needDraw = true)));
     }
+    syncFans() { for (const d of this.devList) if (d.fanLevel) PB.sfx.fan(d.id, !!d.state.on, d.fanLevel); }
     startPan(e) {
       const sx = e.clientX, sy = e.clientY, vx = this.view.x, vy = this.view.y;
       this.vp.classList.add('panning');
@@ -3674,23 +3861,36 @@ Object.assign(PB.I18N.en, {
       window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
     }
     /* ---------- ports & cables ---------- */
-    bncBusy(port) { return this.proj.cables.some((c) => c.kind === 'coax' && (c.a === port || c.b === port)) || this.proj.adapters.some((a) => a.port === port); }
-    stack(port) { return this.proj.cables.filter((c) => c.a === port || c.b === port).length; }
+    bncBusy(port) { return this.proj.cables.some((c) => (c.kind === 'coax' && (c.a === port || c.b === port)) || (c.kind === 'coaxban' && c.a === port)) || this.proj.adapters.some((a) => a.port === port); }
+    stack(port) { return this.proj.cables.filter((c) => c.a === port || c.b === port || c.g === port).length; }
     onPort(port) {
       if (!this.ports.has(port)) return;
       const bnc = this.isBnc(port);
       if (this.tool === 'adapter') { if (bnc) this.toggleAdapter(port); return; }
       if (this.tool === 'place') this.setTool('select');
+      if (this.pend && this.pend.kind === 'coaxT') {
+        if (bnc) { this.toast(t('err.portKind'), 'err'); return; }
+        if (port === this.pend.sig) { this.finishCoaxBan(null); return; }
+        if (this.stack(port) >= 3) { this.toast(t('err.stack'), 'err'); return; }
+        this.finishCoaxBan(port); return;
+      }
+      if (this.tool === 'coax' && !this.pend && !bnc) { this.toast(t('err.coaxStart'), 'err'); return; }
       if (this.pend && this.pend.kind === 'cable') {
         const from = this.pend.from;
         if (port === from) { this.cancelPend(); return; }
+        if (this.pend.bnc && !bnc) {
+          if (this.stack(port) >= 3) { this.toast(t('err.stack'), 'err'); return; }
+          this.pend = { kind: 'coaxT', from, sig: port }; this.ports.get(port).classList.add('pending');
+          PB.sfx.plug(); this.setHint(); this.renderCables(); return;
+        }
         if (bnc !== this.pend.bnc) { this.toast(t('err.portKind'), 'err'); return; }
         if (bnc && this.bncBusy(port)) { this.toast(t('err.bncBusy'), 'err'); return; }
         if (!bnc && this.stack(port) >= 3) { this.toast(t('err.stack'), 'err'); return; }
         const c = { id: PB.uid('c'), kind: bnc ? 'coax' : 'banana', a: from, b: port, color: bnc ? null : this.ui.banColor };
         this.pend = null;
         this.mutate(() => this.proj.cables.push(c));
-        this.setHint(); return;
+        if (bnc) { PB.sfx.bnc(); PB.sfx.bnc(0.18); } else { PB.sfx.plug(); PB.sfx.plug(0.16); }
+        this.clearPendingMarks(); this.setHint(); return;
       }
       if (this.pend) this.cancelPend();
       if (bnc && this.bncBusy(port)) { const co = this.proj.cables.find((c) => c.kind === 'coax' && (c.a === port || c.b === port)); if (co) this.select({ kind: 'cable', id: co.id }); else this.toast(t('err.bncBusy'), 'err'); return; }
@@ -3699,14 +3899,24 @@ Object.assign(PB.I18N.en, {
       this.ports.get(port).classList.add('pending');
       this.setHint();
     }
+    finishCoaxBan(g) {
+      const p = this.pend; if (!p || p.kind !== 'coaxT') return;
+      const c = { id: PB.uid('c'), kind: 'coaxban', a: p.from, b: p.sig, g: g || null };
+      this.pend = null; this.clearPendingMarks();
+      this.mutate(() => this.proj.cables.push(c));
+      PB.sfx.bnc(); if (g) PB.sfx.plug(0.15);
+      this.setHint();
+    }
+    clearPendingMarks() { this.world.querySelectorAll('.jack.pending').forEach((e) => e.classList.remove('pending')); }
     toggleAdapter(port) {
       const ex = this.proj.adapters.find((a) => a.port === port);
       if (ex) { this.deleteItem({ kind: 'adapter', id: ex.id }); return; }
       if (this.bncBusy(port)) { this.toast(t('err.bncBusy'), 'err'); return; }
       this.mutate(() => this.proj.adapters.push({ id: PB.uid('a'), port }));
+      PB.sfx.bnc();
     }
     cancelPend() {
-      if (this.pend && this.pend.kind === 'cable') { const el = this.ports.get(this.pend.from); if (el) el.classList.remove('pending'); }
+      this.clearPendingMarks();
       this.pend = null; this.renderCables(); this.drawOverlay(); this.setHint();
     }
     /* ---------- board interaction ---------- */
@@ -3768,7 +3978,7 @@ Object.assign(PB.I18N.en, {
         if (h === this.pend.from) { this.cancelPend(); return true; }
         if (!this.free(h)) { this.toast(t('err.holeBusy'), 'err'); return true; }
         const w = { id: PB.uid('w'), a: this.pend.from, b: h, color: this.ui.wireColor };
-        this.pend = null; this.mutate(() => this.proj.wires.push(w)); this.setHint(); return true;
+        this.pend = null; this.mutate(() => this.proj.wires.push(w)); PB.sfx.wire(); setTimeout(() => PB.sfx.wire(), 90); this.setHint(); return true;
       }
       if (this.pend) this.cancelPend();
       if (partEl) { this.select({ kind: partEl.dataset.kind, id: partEl.dataset.item }); return true; }
@@ -3783,6 +3993,7 @@ Object.assign(PB.I18N.en, {
       comp.tf = 1 + (Math.random() * 2 - 1) * 0.05;
       Object.keys(comp).forEach((k) => comp[k] === undefined && delete comp[k]);
       this.mutate(() => this.proj.comps.push(comp));
+      PB.sfx.board(comp.pins.length > 3 ? 2 : comp.pins.length);
       this.select({ kind: 'comp', id: comp.id }, true);
     }
     /* ---------- selection & inspector ---------- */
@@ -3802,8 +4013,9 @@ Object.assign(PB.I18N.en, {
         if (s.kind === 'comp') this.proj.comps = this.proj.comps.filter((x) => x !== it);
         else if (s.kind === 'wire') this.proj.wires = this.proj.wires.filter((x) => x !== it);
         else if (s.kind === 'cable') this.proj.cables = this.proj.cables.filter((x) => x !== it);
-        else { this.proj.adapters = this.proj.adapters.filter((x) => x !== it); this.proj.cables = this.proj.cables.filter((c) => !c.a.startsWith(it.id + '.') && !c.b.startsWith(it.id + '.')); }
+        else { const on = (p) => p && p.startsWith(it.id + '.'); this.proj.adapters = this.proj.adapters.filter((x) => x !== it); this.proj.cables = this.proj.cables.filter((c) => !on(c.a) && !on(c.b) && !on(c.g)); }
       });
+      if (s.kind === 'comp' || s.kind === 'wire') PB.sfx.pull(); else PB.sfx.unplug();
       if (this.sel && this.sel.id === s.id) this.sel = null;
       this.renderInspector(); this.renderParts(); this.renderCables();
       this.toast(t('st.deleted'));
@@ -3827,7 +4039,7 @@ Object.assign(PB.I18N.en, {
       } else if (s.kind === 'wire') {
         h += `<div class="ihead">${t('sel.wire')}<span>${hole(it.a).label} → ${hole(it.b).label}</span></div><div class="swatches">${Object.entries(WIRE_C).map(([k, c]) => `<button class="sw${k === 'yg' ? ' yg' : ''}${it.color === k ? ' on' : ''}" data-iwc="${k}" style="--c:${c}"></button>`).join('')}</div>`;
       } else if (s.kind === 'cable') {
-        h += `<div class="ihead">${it.kind === 'coax' ? t('sel.coax') : t('sel.cable')}</div><p class="note">${t('sel.from')} : ${PB.esc(this.portName(it.a))}<br>${t('sel.to')} : ${PB.esc(this.portName(it.b))}</p>`;
+        h += `<div class="ihead">${it.kind === 'coax' ? t('sel.coax') : it.kind === 'coaxban' ? t('sel.coaxban') : t('sel.cable')}</div><p class="note">${t('sel.from')} : ${PB.esc(this.portName(it.a))}<br>${t('sel.to')} : ${PB.esc(this.portName(it.b))}${it.kind === 'coaxban' ? `<br>${t('sel.gnd')} : ${it.g ? PB.esc(this.portName(it.g)) : t('sel.free')}` : ''}</p>`;
         if (it.kind === 'banana') h += `<div class="swatches">${Object.entries(BAN_C).map(([k, c]) => `<button class="sw ban${it.color === k ? ' on' : ''}" data-ibc="${k}" style="--c:${c}"></button>`).join('')}</div>`;
       } else {
         h += `<div class="ihead">${t('sel.adapter')}</div><p class="note">${PB.esc(this.portName(it.port))}</p>`;
@@ -3858,6 +4070,10 @@ Object.assign(PB.I18N.en, {
         <label class="tog"><input type="checkbox" id="sIdeal"${p.ideal ? ' checked' : ''}><span><b>${t('set.ideal')}</b><small>${t('set.idealD')}</small></span></label>
         <label class="tog"><input type="checkbox" id="sTol"${p.tol ? ' checked' : ''}><span><b>${t('set.tol')}</b><small>${t('set.tolD')}</small></span></label>
         <label class="tog"><input type="checkbox" id="sLbl"${p.labels ? ' checked' : ''}><span><b>${t('set.labels')}</b></span></label>
+        <h3>${t('set.audio')}</h3>
+        <label class="tog"><input type="checkbox" id="sSnd"${st.sound ? ' checked' : ''}><span><b>${t('set.sound')}</b><small>${t('set.soundD')}</small></span></label>
+        <div class="row"><span>${t('set.vol')}</span><input type="range" id="sVol" min="0" max="100" value="${Math.round(st.vol * 100)}"></div>
+        <label class="tog"><input type="checkbox" id="sFans"${st.fans ? ' checked' : ''}><span><b>${t('set.fans')}</b><small>${t('set.fansD')}</small></span></label>
         <h3>${t('set.layout')}</h3><button type="button" class="btn" id="sReset">${t('set.resetLayout')}</button>
         <footer>PocketBench · ${t('set.version')} ${PB.VERSION} <span>build ${PB.BUILD}</span></footer></form>`;
       d.querySelectorAll('[data-seg]').forEach((g) => g.addEventListener('click', (e) => {
@@ -3871,8 +4087,12 @@ Object.assign(PB.I18N.en, {
       }));
       $('#sIdeal').onchange = (e) => { p.ideal = e.target.checked; this.dirty(); this.markSave(); };
       $('#sTol').onchange = (e) => { p.tol = e.target.checked; this.dirty(); this.markSave(); };
+      $('#sSnd').onchange = (e) => { st.sound = e.target.checked; PB.sfx.setOn(st.sound); if (st.sound) { PB.sfx.unlock(); this.syncFans(); PB.sfx.key('k'); } this.lsSet('pocketbench.settings', st); };
+      $('#sVol').oninput = (e) => { st.vol = e.target.value / 100; PB.sfx.setVol(st.vol); };
+      $('#sVol').onchange = (e) => { this.lsSet('pocketbench.settings', st); PB.sfx.tick(); };
+      $('#sFans').onchange = (e) => { st.fans = e.target.checked; PB.sfx.setFans(st.fans); if (st.fans) this.syncFans(); this.lsSet('pocketbench.settings', st); };
       $('#sLbl').onchange = (e) => { p.labels = e.target.checked; this.renderParts(); this.markSave(); };
-      $('#sReset').onclick = () => { this.defaultLayout(); this.renderCables(); this.fit(); };
+      $('#sReset').onclick = () => { this.defaultLayout(); this.renderCables(); this.fit(); this.markSave(); };
       if (!d.open) d.showModal();
     }
     openProjects() {
@@ -3905,7 +4125,7 @@ Object.assign(PB.I18N.en, {
       for (let i = 0; i < 4; i++) nl.union('brd.L' + i, 'B:sL' + i);
       for (let i = 0; i < 6; i++) nl.union('brd.R' + i, 'B:sR' + i);
       for (const w of p.wires) nl.union(hole(w.a).node, hole(w.b).node);
-      for (const c of p.cables) nl.union(c.a, c.b);
+      for (const c of p.cables) { nl.union(c.a, c.b); if (c.kind === 'coaxban' && c.g) nl.union(c.g, 'GND'); }
       for (const a of p.adapters) { nl.union(a.id + '.r', a.port); nl.union(a.id + '.k', 'GND'); }
       for (const c of p.comps) {
         const n = c.pins.map((h) => hole(h).node);
