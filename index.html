@@ -12,20 +12,20 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230b5cad'/%3E%3Cpath d='M5 17c3-9 6-9 8 0s5 9 8 0 5-9 6-4' fill='none' stroke='%23fff' stroke-width='2.6' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Barlow+Semi+Condensed:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans+Condensed:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>/* PocketBench */
-:root { --f: "Barlow", "Segoe UI", system-ui, sans-serif; --fc: "Barlow Semi Condensed", "Arial Narrow", "Barlow", sans-serif; }
+:root { --f: "IBM Plex Sans", "Segoe UI", "Helvetica Neue", Arial, sans-serif; --fc: "IBM Plex Sans Condensed", "Roboto Condensed", "Arial Narrow", Arial, sans-serif; --lw: 256px; --rw: 0px; }
 :root[data-theme="light"] { --bg: #e3e7ea; --mat: #c3ccd1; --mat2: #bac4ca; --matl: rgba(24, 52, 70, .07); --chrome: #f7f8f9; --chrome2: #edf0f2; --ink: #17202a; --ink2: #5b6672; --line: #d4d9de; --accent: #0b5cad; --accent-ink: #fff; --warn: #a96200; --danger: #c62828; --hover: rgba(11, 92, 173, .08); color-scheme: light; }
 :root[data-theme="dark"] { --bg: #0f1418; --mat: #1d252b; --mat2: #192026; --matl: rgba(255, 255, 255, .035); --chrome: #151b20; --chrome2: #1c2329; --ink: #e2e8ee; --ink2: #93a0ad; --line: #29323a; --accent: #5aa2ff; --accent-ink: #06121f; --warn: #f0b04a; --danger: #ff6b5e; --hover: rgba(90, 162, 255, .1); color-scheme: dark; }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; }
-body { display: grid; grid-template-rows: 46px 1fr 28px; grid-template-columns: 256px 1fr; grid-template-areas: "top top" "side main" "foot foot"; font-family: var(--f); font-size: 14px; background: var(--bg); color: var(--ink); overflow: hidden; -webkit-font-smoothing: antialiased; }
+body { display: grid; grid-template-rows: 46px 1fr 28px; grid-template-columns: var(--lw) minmax(0, 1fr) var(--rw); grid-template-areas: "top top top" "side main tp" "foot foot foot"; transition: grid-template-columns .22s ease; font-family: var(--f); font-size: 14px; background: var(--bg); color: var(--ink); overflow: hidden; -webkit-font-smoothing: antialiased; }
 button { font-family: inherit; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 /* ---------- top bar ---------- */
-#top { grid-area: top; display: flex; align-items: center; gap: 14px; padding: 0 12px; background: var(--chrome); border-bottom: 1px solid var(--line); z-index: 20; }
-.brand { display: flex; align-items: center; gap: 8px; font: 700 18px/1 var(--fc); letter-spacing: .01em; white-space: nowrap; }
+#top { grid-area: top; display: flex; align-items: center; gap: 12px; padding: 0 10px 0 6px; background: var(--chrome); border-bottom: 1px solid var(--line); z-index: 20; }
+.brand { display: flex; align-items: center; gap: 8px; font: 600 17px/1 var(--f); letter-spacing: -.01em; white-space: nowrap; }
 .brand svg { width: 26px; height: 26px; }
 .brand em { font-style: normal; color: var(--accent); }
 #pname { font: 500 14px var(--f); color: var(--ink); background: transparent; border: 1px solid transparent; border-radius: 6px; padding: 5px 8px; width: 220px; }
@@ -34,12 +34,15 @@ button { font-family: inherit; }
 .tb .sep { width: 1px; height: 22px; background: var(--line); margin: 0 8px; }
 .tbtn { display: inline-flex; align-items: center; gap: 6px; border: none; background: transparent; color: var(--ink); padding: 6px 9px; border-radius: 6px; cursor: pointer; font-size: 13.5px; }
 .tbtn:hover { background: var(--hover); }
+.tbtn.on { background: var(--hover); color: var(--accent); }
 .tbtn svg { width: 17px; height: 17px; stroke: currentColor; fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .tbtn.icon span { display: none; }
 #zoomPct { min-width: 54px; text-align: center; font-variant-numeric: tabular-nums; color: var(--ink2); font-size: 13px; }
 
 /* ---------- side panel ---------- */
-#side { grid-area: side; background: var(--chrome); border-right: 1px solid var(--line); overflow-y: auto; padding: 6px 0 20px; z-index: 10; }
+body.no-left { --lw: 0px; } body.no-left #side { visibility: hidden; }
+body.tp-open { --rw: 360px; }
+#side { grid-area: side; min-width: 0; background: var(--chrome); border-right: 1px solid var(--line); overflow-y: auto; padding: 6px 0 20px; z-index: 10; }
 #side section { padding: 10px 14px 12px; border-bottom: 1px solid var(--line); }
 #side h2 { margin: 0 0 8px; font: 600 13px var(--f); color: var(--ink2); letter-spacing: .01em; }
 .parts { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
@@ -76,8 +79,39 @@ button { font-family: inherit; }
 #cables .plug.free { pointer-events: none; opacity: .95; }
 #cables .ghost { opacity: .6; pointer-events: none; }
 
+/* ---------- TP panel ---------- */
+#tp { grid-area: tp; min-width: 0; background: var(--chrome); border-left: 1px solid var(--line); overflow-y: auto; z-index: 10; visibility: hidden; }
+body.tp-open #tp { visibility: visible; }
+.tp-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px 6px; position: sticky; top: 0; background: var(--chrome); z-index: 2; }
+.tp-head h2 { margin: 0; font: 600 16px var(--f); }
+.tp-head .x { border: none; background: none; color: var(--ink2); font-size: 15px; cursor: pointer; padding: 5px 7px; border-radius: 6px; }
+.tp-head .x:hover { background: var(--hover); }
+.tp-tabs { margin: 4px 14px 10px; display: flex; }
+.tp-tabs button { flex: 1; font-weight: 600; }
+#tpBody { padding: 0 14px 24px; }
+.tp-title { font: 600 15px var(--f); margin: 4px 0 4px; }
+.tp-goal { color: var(--ink2); font-size: 13px; line-height: 1.45; margin: 0 0 12px; }
+.ex { border: 1px solid var(--line); border-radius: 9px; margin-bottom: 8px; background: var(--chrome2); }
+.ex summary { list-style: none; cursor: pointer; padding: 10px 12px; display: flex; gap: 10px; align-items: baseline; font-weight: 600; font-size: 13.5px; line-height: 1.35; }
+.ex summary::-webkit-details-marker { display: none; }
+.ex summary .exn { flex: none; min-width: 34px; color: var(--accent); font-variant-numeric: tabular-nums; }
+.ex summary::after { content: "›"; margin-left: auto; color: var(--ink2); transition: transform .15s; }
+.ex[open] summary::after { transform: rotate(90deg); }
+.ex[open] summary { border-bottom: 1px solid var(--line); }
+.ex-body { padding: 10px 12px 12px; font-size: 13px; line-height: 1.5; }
+.ex-body h4 { margin: 0 0 6px; font: 600 12px var(--f); color: var(--ink2); }
+.ex-body ol { margin: 0 0 12px; padding-left: 18px; }
+.ex-body li { margin-bottom: 5px; }
+.setups { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+.setups .btn { padding: 6px 10px; font-size: 12.5px; display: inline-flex; gap: 6px; align-items: center; }
+.setups .btn svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+.hint { border-left: 3px solid var(--accent); background: var(--hover); padding: 7px 10px; border-radius: 0 6px 6px 0; margin-bottom: 6px; }
+.hint b { color: var(--accent); font-weight: 600; margin-right: 4px; }
+.hint-actions { display: flex; gap: 6px; }
+.hint-actions .btn { font-size: 12.5px; padding: 5px 10px; }
+
 /* ---------- workspace ---------- */
-#vp { grid-area: main; position: relative; overflow: hidden; background-color: var(--mat); background-image: linear-gradient(var(--matl) 1px, transparent 1px), linear-gradient(90deg, var(--matl) 1px, transparent 1px), radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, .06), transparent 70%); background-size: 40px 40px, 40px 40px, 100% 100%; cursor: default; touch-action: none; user-select: none; -webkit-user-select: none; }
+#vp { grid-area: main; min-width: 0; position: relative; overflow: hidden; background-color: var(--mat); background-image: linear-gradient(var(--matl) 1px, transparent 1px), linear-gradient(90deg, var(--matl) 1px, transparent 1px), radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, .06), transparent 70%); background-size: 40px 40px, 40px 40px, 100% 100%; cursor: default; touch-action: none; user-select: none; -webkit-user-select: none; }
 #vp.panning, #vp.grab { cursor: grabbing; }
 #vp[data-tool="place"] .board, #vp[data-tool="adapter"] .bnc { cursor: copy; }
 #world { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
@@ -267,7 +301,7 @@ dialog { border: none; border-radius: 14px; padding: 0; background: var(--chrome
 dialog input[type=range] { accent-color: var(--accent); width: 160px; }
 dialog::backdrop { background: rgba(8, 12, 16, .45); }
 .dlg header { display: flex; align-items: center; justify-content: space-between; padding: 16px 18px 6px; }
-.dlg h2 { margin: 0; font: 700 19px var(--fc); }
+.dlg h2 { margin: 0; font: 600 18px var(--f); }
 .dlg h3 { margin: 14px 0 0; padding: 0 18px; font: 600 13px var(--f); color: var(--ink2); }
 .dlg .x { border: none; background: none; color: var(--ink2); font-size: 16px; cursor: pointer; padding: 6px; border-radius: 6px; }
 .dlg .x:hover { background: var(--hover); }
@@ -290,6 +324,7 @@ dialog::backdrop { background: rgba(8, 12, 16, .45); }
 </head>
 <body>
 <header id="top">
+  <button class="tbtn icon" id="btnLeft" data-act="toggleLeft" data-i18n-title="ui.left"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/></svg></button>
   <div class="brand"><svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#0b5cad"/><path d="M5 17c3-9 6-9 8 0s5 9 8 0 5-9 6-4" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/></svg><span>Pocket<em>Bench</em></span></div>
   <input id="pname" spellcheck="false" data-i18n-title="tb.name" aria-label="Nom du projet">
   <nav class="tb">
@@ -307,6 +342,8 @@ dialog::backdrop { background: rgba(8, 12, 16, .45); }
     <button class="tbtn icon" data-act="zin" title="+"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M8 11h6M11 8v6M16 16l5 5"/></svg></button>
     <button class="tbtn" data-act="fit"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg><span data-i18n="tb.fit">Ajuster</span></button>
     <i class="sep"></i>
+    <button class="tbtn" id="btnTP" data-act="toggleTP" data-i18n-title="ui.tpTitle"><svg viewBox="0 0 24 24"><path d="M4 5a2 2 0 0 1 2-2h12v16H6a2 2 0 0 0-2 2z"/><path d="M4 19V5M8 7h6M8 11h6"/></svg><span data-i18n="ui.tp">TP</span></button>
+    <i class="sep"></i>
     <button class="tbtn" data-act="settings"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span data-i18n="tb.settings">Paramètres</span></button>
   </nav>
 </header>
@@ -321,6 +358,7 @@ dialog::backdrop { background: rgba(8, 12, 16, .45); }
     <p class="note" data-i18n="bnc.coaxToolHint"></p></section>
   <section><h2 data-i18n="side.sel">Sélection</h2><div id="insp"></div></section>
 </aside>
+<aside id="tp"><header class="tp-head"><h2 data-i18n="tp.title">Travaux pratiques</h2><button class="x" data-act="toggleTP" data-i18n-title="tp.close">✕</button></header><div id="tpTabs" class="seg tp-tabs"></div><div id="tpBody"></div></aside>
 <main id="vp" data-tool="select"><div id="world"><svg id="cables" xmlns="http://www.w3.org/2000/svg"></svg></div></main>
 <footer id="status"><span id="hint"></span><span id="warn"></span><span id="simInfo"></span></footer>
 <div id="tip"></div><div id="toast" role="status"></div>
@@ -329,7 +367,7 @@ dialog::backdrop { background: rgba(8, 12, 16, .45); }
 <script>'use strict';
 /* PocketBench — utilities */
 const PB = window.PB = {};
-PB.VERSION = '1.1.0';
+PB.VERSION = '1.2.0';
 PB.BUILD = '2026-11-05';
 
 PB.clamp = (x, a, b) => (x < a ? a : x > b ? b : x);
@@ -337,6 +375,11 @@ PB.gauss = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v 
 PB.uid = (p = 'i') => p + Math.random().toString(36).slice(2, 8) + Date.now().toString(36).slice(-3);
 PB.nextPow2 = (x) => (!(x > 1) ? 1 : x >= 2 ** 30 ? 2 ** 30 : 2 ** Math.ceil(Math.log2(x) - 1e-12));
 PB.html = (s) => { const t = document.createElement('template'); t.innerHTML = s.trim(); return t.content.firstElementChild; };
+PB.merge = (t, p) => {
+  if (Array.isArray(p) && Array.isArray(t)) { p.forEach((v, i) => { if (v && typeof v === 'object' && !Array.isArray(v) && t[i] && typeof t[i] === 'object') PB.merge(t[i], v); else t[i] = v; }); return t; }
+  for (const k of Object.keys(p)) { const v = p[k]; if (v && typeof v === 'object' && t[k] && typeof t[k] === 'object') PB.merge(t[k], v); else t[k] = v; }
+  return t;
+};
 PB.esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 const PREF = [[1e9, 'G'], [1e6, 'M'], [1e3, 'k'], [1, ''], [1e-3, 'm'], [1e-6, 'µ'], [1e-9, 'n'], [1e-12, 'p']];
@@ -899,7 +942,10 @@ PB.t = (k, vars) => {
   /* ---------- top-level solve ---------- */
   function solve(nl, opts) {
     opts = opts || {};
-    const els = nl.elems.map((e) => Object.assign({}, e, { r: e.n.map((k) => nl.find(k)) }));
+    let els = nl.elems.map((e) => Object.assign({}, e, { r: e.n.map((k) => nl.find(k)) }));
+    // a power-supply channel whose terminals are tied together (e.g. both to earth) runs in current limit
+    const shorted = els.filter((e) => e.t === 'PSU' && e.r[0] === e.r[1]);
+    els = els.filter((e) => !(e.t === 'PSU' && e.r[0] === e.r[1]));
     // components (earth removed)
     const cp = new Map();
     const cf = (k) => { let p = cp.get(k); if (p === undefined) { cp.set(k, k); return k; } if (p === k) return k; const r = cf(p); cp.set(k, r); return r; };
@@ -917,6 +963,7 @@ PB.t = (k, vars) => {
       const C = comps.get(c); C.els.push(e); for (const r of ng) C.nodes.add(r);
     }
     const sol = new Solution(nl, opts.T || null);
+    for (const e of shorted) sol.psu.set(e.tag, { mode: 'CC', i: e.ilim });
     const t0 = performance.now();
     for (const C of comps.values()) {
       if (!C.els.some((e) => e.t === 'V' || e.t === 'I' || e.t === 'PSU')) continue;
@@ -1205,7 +1252,7 @@ PB.t = (k, vars) => {
   PB.Device = Device;
 
   /* ---------- canvas helpers shared by screens ---------- */
-  PB.font = (px, w = 500, fam = 'scr') => `${w} ${px}px ${fam === 'scr' ? '"Barlow Semi Condensed","Arial Narrow",Arial,sans-serif' : fam}`;
+  PB.font = (px, w = 500, fam = 'scr') => `${w} ${px}px ${fam === 'scr' ? '"IBM Plex Sans Condensed","Roboto Condensed","Arial Narrow",Arial,sans-serif' : fam}`;
   PB.splash = (ctx, w, h, name, sub, t) => {
     ctx.fillStyle = '#000'; ctx.fillRect(0, 0, w, h);
     const a = Math.min(1, t / 400);
@@ -1271,6 +1318,43 @@ Object.assign(PB.I18N.en, {
   'set.layout': 'Layout', 'set.resetLayout': 'Put the instruments back in place', 'set.close': 'Close', 'set.version': 'Version',
   'pr.title': 'Saved projects', 'pr.empty': 'No project saved in this browser yet. Use “Save” (Ctrl+S).', 'pr.open': 'Open', 'pr.del': 'Delete', 'pr.confirmNew': 'Create a new empty project? Remember to save the current one.', 'pr.confirmDel': 'Permanently delete “{n}”?', 'pr.untitled': 'Untitled',
   'ctx.delete': 'Delete', 'board.hole': 'Hole {h}', 'board.sock': 'Socket {h}',
+});
+PB.I18N.de = {
+  'dev.psu': 'Netzgerät', 'dev.gen': 'Funktionsgenerator', 'dev.dmm': 'Multimeter', 'dev.scope': 'Oszilloskop', 'dev.board': 'Hirschmann-Steckbrett',
+  'tb.new': 'Neu', 'tb.open': 'Öffnen', 'tb.save': 'Speichern', 'tb.import': 'Importieren', 'tb.export': 'Exportieren', 'tb.undo': 'Rückgängig', 'tb.redo': 'Wiederholen', 'tb.fit': 'Einpassen', 'tb.settings': 'Einstellungen', 'tb.name': 'Projektname',
+  'side.parts': 'Bauteile', 'side.wires': 'Steckbrücken', 'side.cables': 'Bananenkabel', 'side.bnc': 'BNC-Verbindungen', 'side.sel': 'Auswahl', 'side.value': 'Wert',
+  'p.R': 'Widerstand', 'p.C': 'Kondensator', 'p.L': 'Spule', 'p.D': 'Diode', 'p.LED': 'LED', 'p.Z': 'Z-Diode', 'p.OA': 'OPV µA741', 'p.POT': 'Potentiometer',
+  'bnc.adapter': 'Adapter BNC → Bananenbuchse', 'bnc.coax': 'Koaxialkabel BNC–BNC', 'bnc.adapterHint': 'Dann eine BNC-Buchse anklicken, um einen Adapter aufzustecken (oder zu entfernen); die Bananenkabel daran sind nicht abgeschirmt.', 'bnc.coaxHint': 'Zwei BNC-Buchsen anklicken, um sie mit einem Koaxialkabel zu verbinden.', 'bnc.coaxTool': 'Koaxialkabel', 'bnc.coaxToolHint': 'Abgeschirmt. Eine BNC-Buchse anklicken, dann eine weitere BNC-Buchse (Koax BNC–BNC) oder eine Bananenbuchse (BNC → roter + schwarzer Stecker).',
+  'hint.coaxStart': 'Koaxialkabel: BNC-Buchse am Anfang anklicken.', 'hint.coaxGnd': 'Buchse für den schwarzen Stecker (Masse ⏚) anklicken — Rechtsklick lässt ihn frei, Esc bricht ab.', 'err.coaxStart': 'Ein Koaxialkabel beginnt an einer BNC-Buchse.', 'sel.coaxban': 'Koaxialkabel BNC → Bananenstecker', 'sel.gnd': 'Masse', 'sel.free': 'frei',
+  'set.audio': 'Ton', 'set.sound': 'Soundeffekte', 'set.soundD': 'Tasten, Drehknopf-Rasten, Relais, Bananen- und BNC-Stecker, Bauteile, Pieptöne der Geräte.', 'set.vol': 'Lautstärke', 'set.fans': 'Gerätelüfter', 'set.fansD': 'Leises Lüftergeräusch eingeschalteter Geräte.',
+  'sel.none': 'Bauteil, Steckbrücke oder Kabel anklicken, um es zu bearbeiten.', 'sel.delete': 'Löschen', 'sel.power': 'Belastbarkeit', 'sel.type': 'Typ', 'sel.ceramic': 'Keramik', 'sel.elec': 'Elektrolyt', 'sel.rs': 'Serienwiderstand', 'sel.model': 'Modell', 'sel.pos': 'Schleiferstellung', 'sel.color': 'Farbe', 'sel.pins': 'Pinbelegung',
+  'sel.oaPins': '1 Offset · 2 IN− · 3 IN+ · 4 V− · 5 Offset · 6 OUT · 7 V+ · 8 NC', 'sel.from': 'Von', 'sel.to': 'Nach', 'sel.cable': 'Bananenkabel', 'sel.coax': 'Koaxialkabel', 'sel.wire': 'Steckbrücke', 'sel.adapter': 'Adapter BNC → Bananenbuchse',
+  'hint.idle': 'Eine Buchse anklicken, um ein Kabel zu ziehen, ein Loch im Steckbrett für eine Steckbrücke. Hintergrund ziehen: verschieben · Mausrad: zoomen.',
+  'hint.wire': 'Zielloch anklicken (Esc zum Abbrechen).', 'hint.cable': 'Zielbuchse anklicken (Esc zum Abbrechen).', 'hint.coax': 'Ziel-BNC-Buchse anklicken (Esc zum Abbrechen).',
+  'hint.place2': 'Loch für den ersten Anschluss anklicken.', 'hint.place2b': 'Zweites Loch anklicken (Esc zum Abbrechen).', 'hint.placeOA': 'Gehäuse über zwei Reihen setzen (Kerbe links, Pin 1 unten links).', 'hint.placePOT': 'Loch für Pin 1 anklicken: die 3 Pins belegen 3 benachbarte Spalten.', 'hint.adapter': 'Eine BNC-Buchse anklicken, um einen Adapter aufzustecken oder zu entfernen.',
+  'err.holeBusy': 'Dieses Loch ist bereits belegt.', 'err.sameHole': 'Ein anderes Loch wählen.', 'err.portKind': 'Diese beiden Anschlüsse passen nicht zusammen.', 'err.bncBusy': 'Diese BNC-Buchse ist bereits belegt.', 'err.stack': 'Zu viele Stecker auf dieser Buchse gestapelt.', 'err.noFit': 'Das Bauteil passt hier nicht.',
+  'warn.hot': '{n} wird zu heiß: {p} bei {r} Belastbarkeit.', 'warn.elec': '{n} ist falsch gepolt.',
+  'st.deleted': 'Gelöscht — Strg+Z zum Rückgängigmachen.', 'st.saved': 'Projekt „{n}“ im Browser gespeichert.', 'st.exported': 'Datei exportiert.', 'st.imported': 'Projekt importiert.', 'st.importErr': 'Diese Datei ist kein gültiges PocketBench-Projekt.', 'st.sim': 'Simulation {ms} ms', 'st.storage': 'Der Browser verweigert das Speichern (Speicher voll oder blockiert).',
+  'set.title': 'Einstellungen', 'set.theme': 'Design', 'set.auto': 'Automatisch', 'set.light': 'Hell', 'set.dark': 'Dunkel', 'set.lang': 'Sprache', 'set.scope': 'Oszilloskop', 'set.gen': 'Generator', 'set.sim': 'Simulation',
+  'set.ideal': 'Ideale Messgeräte', 'set.idealD': 'Entfernt Innenwiderstände, Rauschen, Quantisierung und Bandbreitengrenzen.', 'set.tol': 'Reale Bauteiltoleranz', 'set.tolD': 'Jedes gesetzte Bauteil erhält einen zufälligen realen Wert innerhalb seiner Toleranz (5 %).', 'set.labels': 'Werte auf dem Steckbrett anzeigen',
+  'set.layout': 'Anordnung', 'set.resetLayout': 'Geräte an ihren Platz zurücksetzen', 'set.close': 'Schließen', 'set.version': 'Version',
+  'pr.title': 'Gespeicherte Projekte', 'pr.empty': 'In diesem Browser ist noch kein Projekt gespeichert. „Speichern“ (Strg+S) verwenden.', 'pr.open': 'Öffnen', 'pr.del': 'Löschen', 'pr.confirmNew': 'Neues leeres Projekt erstellen? Das aktuelle vorher speichern.', 'pr.confirmDel': '„{n}“ endgültig löschen?', 'pr.untitled': 'Ohne Titel',
+  'ctx.delete': 'Löschen', 'board.hole': 'Loch {h}', 'board.sock': 'Buchse {h}',
+};
+Object.assign(PB.I18N.fr, {
+  'ui.left': 'Afficher / masquer le panneau des composants', 'ui.tp': 'TP', 'ui.tpTitle': 'Afficher / masquer les travaux pratiques',
+  'tp.title': 'Travaux pratiques', 'tp.setups': 'Montage prêt', 'tp.hint': 'Indice', 'tp.moreHint': 'Afficher un indice', 'tp.nextHint': 'Indice suivant', 'tp.hideHints': 'Masquer les indices',
+  'tp.confirm': 'Charger ce montage ? Il remplace le câblage actuel et règle les appareils (Ctrl+Z rétablit le câblage précédent).', 'tp.loaded': 'Montage chargé : {n}', 'tp.frOnly': '', 'tp.steps': 'Consignes', 'tp.close': 'Fermer',
+});
+Object.assign(PB.I18N.en, {
+  'ui.left': 'Show / hide the components panel', 'ui.tp': 'Labs', 'ui.tpTitle': 'Show / hide the lab sessions',
+  'tp.title': 'Lab sessions', 'tp.setups': 'Ready-made setup', 'tp.hint': 'Hint', 'tp.moreHint': 'Show a hint', 'tp.nextHint': 'Next hint', 'tp.hideHints': 'Hide hints',
+  'tp.confirm': 'Load this setup? It replaces the current wiring and sets the instruments (Ctrl+Z restores the previous wiring).', 'tp.loaded': 'Setup loaded: {n}', 'tp.frOnly': 'The lab sheets are in French, as in the course.', 'tp.steps': 'Instructions', 'tp.close': 'Close',
+});
+Object.assign(PB.I18N.de, {
+  'ui.left': 'Bauteilleiste ein-/ausblenden', 'ui.tp': 'Labor', 'ui.tpTitle': 'Laborübungen ein-/ausblenden',
+  'tp.title': 'Laborübungen', 'tp.setups': 'Fertiger Aufbau', 'tp.hint': 'Hinweis', 'tp.moreHint': 'Hinweis anzeigen', 'tp.nextHint': 'Nächster Hinweis', 'tp.hideHints': 'Hinweise ausblenden',
+  'tp.confirm': 'Diesen Aufbau laden? Er ersetzt die aktuelle Verdrahtung und stellt die Geräte ein (Strg+Z stellt die vorherige Verdrahtung wieder her).', 'tp.loaded': 'Aufbau geladen: {n}', 'tp.frOnly': 'Die Aufgabenblätter sind, wie im Kurs, auf Französisch.', 'tp.steps': 'Anweisungen', 'tp.close': 'Schließen',
 });
 
 'use strict';
@@ -1513,7 +1597,7 @@ Object.assign(PB.I18N.en, {
         const is = ed && ed.what === 'I' ? ed.val : (m ? m.i : c.i);
         const vstr = (vs < 10 ? ' ' : '') + vs.toFixed(3);
         const istr = Math.abs(is) < 1 ? is.toFixed(4) : is.toFixed(3);
-        ctx.font = PB.font(19, 600, '"Barlow Semi Condensed",monospace');
+        ctx.font = PB.font(19, 600, '"IBM Plex Mono","Roboto Mono",monospace');
         this.drawNum(ctx, vstr, 4, y, ed && ed.what === 'V' ? ed.digit : null, 'V');
         this.drawNum(ctx, istr, 104, y, ed && ed.what === 'I' ? ed.digit : null, 'A');
         ctx.font = PB.font(10, 500);
@@ -1956,14 +2040,14 @@ Object.assign(PB.I18N.en, {
         ctx.font = PB.font(10, 600); ctx.fillStyle = '#ffd400'; ctx.fillText(lab ? 'Range: ' + lab : '', 7, y0 + 12);
         ctx.fillStyle = '#c9d0d8'; ctx.textAlign = 'right'; ctx.fillText(tag, 240, y0 + 12); ctx.textAlign = 'left';
         if (!v) return;
-        ctx.font = PB.font(big, 600, '"Barlow Semi Condensed","Arial Narrow",sans-serif');
+        ctx.font = PB.font(big, 600, '"IBM Plex Sans Condensed","Roboto Condensed","Arial Narrow",Arial,sans-serif');
         ctx.fillStyle = col; ctx.textAlign = 'right';
         let txt = v.over ? (v.open ? 'OPEN' : 'OVER RANGE') : v.txt;
         if (v.over) ctx.font = PB.font(big * 0.62, 700);
         const ux = 238;
         ctx.font = PB.font(big * 0.55, 600); const uw = ctx.measureText((v.unit || '') + (v.sym || '')).width;
         if (!v.over) { ctx.fillText((v.unit || '') + (v.sym || ''), ux, y0 + h - 10); }
-        ctx.font = v.over ? PB.font(big * 0.62, 700) : PB.font(big, 600, '"Barlow Semi Condensed","Arial Narrow",sans-serif');
+        ctx.font = v.over ? PB.font(big * 0.62, 700) : PB.font(big, 600, '"IBM Plex Sans Condensed","Roboto Condensed","Arial Narrow",Arial,sans-serif');
         ctx.fillText(txt, v.over ? ux : ux - uw - 4, y0 + h - 10);
         ctx.textAlign = 'left';
       };
@@ -3305,6 +3389,233 @@ Object.assign(PB.I18N.en, {
 })();
 
 'use strict';
+/* PocketBench — guided lab sessions (TP1–TP3, EE-100 STE). Instructions are paraphrased from the lab sheets. */
+(function () {
+  const h = (r, k, c) => `h${r}.${k}.${c}`;
+  const R = (id, pins, v, pw) => ({ id, type: 'R', pins, v, pw: pw || 0.25, tf: 1 });
+  const W = (id, a, b, color) => ({ id, a, b, color });
+  const B = (id, a, b, color) => ({ id, kind: 'banana', a, b, color });
+  const ALL = ['hmo', 'hmf', 'hmp', 'dmm1', 'dmm2'];
+  const base = () => ({ comps: [], wires: [], cables: [], adapters: [], on: ALL.slice(), dev: {} });
+  const scope = (ch1, extra) => Object.assign({ ch: [Object.assign({ on: true, vdiv: 0.5, pos: 0, cpl: 'DC' }, ch1 || {})], tb: 200e-6, trig: { src: 0, lvl: [0, 0, 0, 0], slope: 'rise', mode: 'Auto', filt: 'DC' } }, extra || {});
+  const gen = (o) => Object.assign({ wave: 'sine', freq: 1000, ampl: 2, offset: 0, offOn: false, out: true }, o || {});
+
+  /* ---------- TP1 setups ---------- */
+  // generator → scope CH1 with BNC→banana adapters and banana leads (as at the bench)
+  const t1leads = (g, sc) => {
+    const s = base();
+    s.adapters.push({ id: 'ag', port: 'gen.out' }, { id: 'as', port: 'scope.ch1' });
+    s.cables.push(B('c1', 'ag.r', 'as.r', 'red'), B('c2', 'ag.k', 'as.k', 'black'));
+    s.dev.hmf = gen(g); s.dev.hmo = scope(sc && sc.ch1, sc && sc.extra);
+    return s;
+  };
+  const t1coax = (g, sc) => {
+    const s = base();
+    s.cables.push({ id: 'cx', kind: 'coax', a: 'gen.out', b: 'scope.ch1' });
+    s.dev.hmf = gen(g); s.dev.hmo = scope(sc && sc.ch1, sc && sc.extra);
+    return s;
+  };
+  const t1dmm = () => {
+    const s = t1leads({ offset: 1, offOn: true }, { ch1: { vdiv: 0.5, pos: -2 } });
+    s.cables.push(B('c3', 'ag.r', 'dmm1.v', 'red'), B('c4', 'ag.k', 'dmm1.com', 'black'));
+    s.dev.dmm1 = { fn: 'ACV', second: { ACV: 'DC V' } };
+    return s;
+  };
+  const t1series = (swapped) => {
+    const s = base();
+    s.adapters.push({ id: 'ag', port: 'gen.out' }, { id: 'as', port: 'scope.ch1' });
+    s.dev.hmf = gen();
+    s.dev.hmp = { ch: [{ v: 1, i: 0.1, sel: true }], out: true };
+    s.dev.hmo = scope({ vdiv: 0.5, pos: -2 });
+    s.dev.dmm1 = { fn: 'ACV', second: { ACV: 'DC V' } };
+    if (!swapped) {
+      // earth ─ generator ─ HMP(−→+) ─ measurement point
+      s.cables.push(B('c1', 'ag.r', 'hmp.ch1.m', 'yellow'), B('c2', 'hmp.ch1.p', 'as.r', 'red'), B('c3', 'hmp.ch1.p', 'dmm1.v', 'red'), B('c4', 'ag.k', 'as.k', 'black'), B('c5', 'ag.k', 'dmm1.com', 'black'));
+    } else {
+      // earth ─ HMP(−→+) ─ generator ─ measurement point : the generator ground is earthed → HMP shorted
+      s.cables.push(B('c1', 'hmp.ch1.m', 'as.k', 'black'), B('c2', 'hmp.ch1.p', 'ag.k', 'yellow'), B('c3', 'ag.r', 'as.r', 'red'), B('c4', 'ag.r', 'dmm1.v', 'red'), B('c5', 'as.k', 'dmm1.com', 'black'));
+    }
+    return s;
+  };
+
+  /* ---------- TP2 setups ---------- */
+  const t2gen = (withR) => {
+    const s = base();
+    s.adapters.push({ id: 'ag', port: 'gen.out' }, { id: 'as', port: 'scope.ch1' });
+    s.cables.push(B('c1', 'ag.r', 'brd.L0', 'red'), B('c2', 'ag.k', 'brd.R0', 'black'), B('c3', 'as.r', 'brd.L0', 'red'), B('c4', 'as.k', 'brd.R0', 'black'));
+    s.wires.push(W('w1', 'sL0.1', h(0, 2, 4), 'red'), W('w2', h(0, 2, 13), 'sR0.0', 'black'));
+    if (withR) s.comps.push(R('R47', [h(0, 1, 4), h(0, 1, 13)], 47, 3));
+    s.dev.hmf = gen({ ampl: 16 }); s.dev.hmo = scope({ vdiv: 2 });
+    return s;
+  };
+  const t2psu = (withR) => {
+    const s = base();
+    s.cables.push(B('c1', 'hmp.ch1.p', 'brd.L0', 'red'), B('c2', 'hmp.ch1.m', 'brd.R0', 'black'), B('c3', 'dmm2.v', 'brd.L0', 'red'), B('c4', 'dmm2.com', 'brd.R0', 'black'));
+    s.wires.push(W('w1', 'sL0.1', h(0, 2, 4), 'red'), W('w2', h(0, 2, 13), 'sR0.0', 'black'));
+    if (withR) s.comps.push(R('R47', [h(0, 1, 4), h(0, 1, 13)], 47, 3));
+    s.dev.hmp = { ch: [{ v: 8, i: 0.5, sel: true }], out: true }; s.dev.dmm2 = { fn: 'DCV' };
+    return s;
+  };
+  // U0 (9 V) – ammeter – R1 – R2 ; optional voltmeter across R2
+  const t2divider = (rev, volt) => {
+    const s = base();
+    s.cables.push(B('c1', 'hmp.ch1.p', rev ? 'dmm1.com' : 'dmm1.a', 'red'), B('c2', rev ? 'dmm1.a' : 'dmm1.com', 'brd.L0', 'red'), B('c3', 'hmp.ch1.m', 'brd.R0', 'black'));
+    s.wires.push(W('w1', 'sL0.1', h(0, 0, 4), 'red'), W('w2', h(0, 3, 20), 'sR0.0', 'black'));
+    s.comps.push(R('R1', [h(0, 1, 4), h(0, 1, 12)], 2200), R('R2', [h(0, 2, 12), h(0, 2, 20)], 1500));
+    if (volt) { s.cables.push(B('c4', 'dmm2.v', 'brd.L1', 'yellow'), B('c5', 'dmm2.com', 'brd.R0', 'black')); s.wires.push(W('w3', 'sL1.1', h(0, 4, 12), 'yellow')); s.dev.dmm2 = { fn: 'DCV' }; }
+    s.dev.hmp = { ch: [{ v: 9, i: 0.1, sel: true }], out: true }; s.dev.dmm1 = { fn: 'DCI' };
+    return s;
+  };
+  // Kirchhoff: U0 → R1 → A ; A → R2 → C ; A → R1 → B ; B → R2 → C
+  const t2kirch = (mode) => {
+    const s = base();
+    s.comps.push(R('R1a', [h(0, 2, 4), h(0, 2, 12)], 2200), R('R1b', [h(0, 3, 12), h(0, 3, 22)], 2200), R('R2a', [h(1, 2, 12), h(1, 2, 30)], 1500), R('R2b', [h(3, 2, 22), h(3, 2, 30)], 1500));
+    s.wires.push(W('w1', 'sL0.1', h(0, 0, 4), 'red'), W('wA', h(0, 1, 12), h(1, 0, 12), 'green'), W('wC', h(1, 3, 30), h(3, 3, 30), 'black'), W('wG', h(1, 4, 30), 'sR1.0', 'black'));
+    s.cables.push(B('cg', 'hmp.ch1.m', 'brd.R1', 'black'));
+    s.dev.hmp = { ch: [{ v: 9, i: 0.1, sel: true }], out: true };
+    if (mode === 'I') {
+      s.cables.push(B('c1', 'hmp.ch1.p', 'dmm1.a', 'red'), B('c2', 'dmm1.com', 'brd.L0', 'red'));
+      s.wires.push(W('wB', h(0, 4, 22), 'sL1.1', 'yellow'), W('wB2', 'sL2.1', h(3, 0, 22), 'yellow'));
+      s.cables.push(B('c3', 'brd.L1', 'dmm2.a', 'yellow'), B('c4', 'dmm2.com', 'brd.L2', 'yellow'));
+      s.dev.dmm1 = { fn: 'DCI' }; s.dev.dmm2 = { fn: 'DCI' };
+    } else {
+      s.cables.push(B('c1', 'hmp.ch1.p', 'brd.L0', 'red'));
+      s.wires.push(W('wB', h(0, 4, 22), h(3, 0, 22), 'yellow'), W('wa', 'sL1.1', h(0, 4, 12), 'green'), W('wb', 'sL2.1', h(0, 1, 22), 'yellow'));
+      s.cables.push(B('c3', 'dmm1.v', 'brd.L1', 'green'), B('c4', 'dmm1.com', 'brd.L2', 'yellow'), B('c5', 'dmm2.v', 'brd.L1', 'green'), B('c6', 'dmm2.com', 'brd.R1', 'black'));
+      s.dev.dmm1 = { fn: 'DCV' }; s.dev.dmm2 = { fn: 'DCV' };
+    }
+    return s;
+  };
+
+  /* ---------- TP3 setups ---------- */
+  // U0 → R1 → C ; C → R2 → U1 ; C → R1' → A ; A → R2' → B (B = common return)
+  const t3 = (o) => {
+    o = o || {};
+    const s = base();
+    s.comps.push(R('R1', [h(0, 2, 4), h(0, 2, 12)], 2200), R('R1p', [h(0, 3, 12), h(0, 3, 22)], 2200), R('R2p', [h(0, 2, 22), h(0, 2, 32)], 1000), R('R2', [h(1, 2, 12), h(1, 2, 20)], 1000));
+    s.wires.push(W('w1', 'sL0.1', h(0, 0, 4), 'red'), W('wC', h(0, 1, 12), h(1, 0, 12), 'green'), W('wU1', h(1, 3, 20), 'sL1.0', 'blue'), W('wB', h(0, 4, 32), 'sR0.0', 'black'), W('wB2', h(0, 3, 32), 'sR1.0', 'black'), W('wA', 'sL2.1', h(0, 4, 22), 'yellow'));
+    s.cables.push(B('c1', 'hmp.ch1.p', 'brd.L0', 'red'), B('c2', 'hmp.ch1.m', 'brd.R0', 'black'));
+    const u0 = o.u0 === undefined ? 6 : o.u0, u1 = o.u1 === undefined ? 3 : o.u1;
+    if (o.gen) {
+      s.adapters.push({ id: 'ag', port: 'gen.out' }, { id: 'as', port: 'scope.ch1' });
+      s.cables.push(B('g1', 'ag.r', 'brd.L1', 'blue'), B('g2', 'ag.k', 'brd.R0', 'black'), B('s1', 'as.r', 'brd.L2', 'yellow'), B('s2', 'as.k', 'brd.R0', 'black'));
+      s.dev.hmf = gen({ ampl: 6 }); s.dev.hmo = scope({ vdiv: 0.2, pos: -2 });
+      s.dev.hmp = { ch: [{ v: u0, i: 0.1, sel: true }], out: true };
+    } else {
+      s.cables.push(B('c3', 'hmp.ch2.p', 'brd.L1', 'blue'), B('c4', 'hmp.ch2.m', 'brd.R0', 'black'));
+      s.dev.hmp = { ch: [{ v: u0, i: 0.1, sel: true }, { v: u1, i: 0.1, sel: true }], out: true };
+    }
+    const m = o.meter || 'DCV';
+    if (m === 'DCI') s.cables.push(B('m1', 'dmm1.a', 'brd.L2', 'yellow'), B('m2', 'dmm1.com', 'brd.R1', 'black'));
+    else s.cables.push(B('m1', 'dmm1.v', 'brd.L2', 'yellow'), B('m2', 'dmm1.com', 'brd.R1', 'black'));
+    s.dev.dmm1 = { fn: m === 'DCI' ? 'DCI' : m === 'OHM' ? 'OHM' : 'DCV' };
+    if (o.gen) { s.cables.push(B('m3', 'dmm2.v', 'brd.L2', 'yellow'), B('m4', 'dmm2.com', 'brd.R1', 'black')); s.dev.dmm2 = { fn: 'ACV' }; }
+    return s;
+  };
+
+  PB.TPS = [
+    {
+      id: 'tp1', name: 'TP1', title: 'Instrumentation',
+      goal: 'Se familiariser avec les appareils de base du laboratoire : leurs fonctions, leurs possibilités et leurs particularités.',
+      ex: [
+        { n: '1', t: 'Prise en main de l’oscilloscope',
+          steps: ['Allume l’oscilloscope et parcours les 4 voies avec CH1…CH4 : le menu court AC/DC, GND, 50 Ω, BWL, INV apparaît à droite de l’écran.', 'Sur le HMO2024, vérifie que 50 Ω n’est pas activé.', 'Parcours les menus des 4 zones (CURSOR/MENU, ANALYZE, GENERAL, VERTICAL, TRIGGER, HORIZONTAL).', 'Vérifie que le couplage DC est actif.', 'Maintiens AUTOSET plusieurs secondes pour revenir aux réglages d’usine.'],
+          hints: ['Une voie s’allume au premier appui, devient active au second et s’éteint au troisième (si elle était déjà active).', 'La touche ↩ sous les touches de menu referme le menu étendu et ramène le menu court de la voie active.', 'Dans PocketBench, l’appui long se fait en gardant le clic enfoncé plus de 3 s sur AUTOSET.'],
+          setups: [{ label: 'Appareils allumés', make: () => base() }] },
+        { n: '2', t: 'Générateur → oscilloscope (sinus 1 V, 1 kHz)',
+          steps: ['Relie la sortie du générateur à CH1 avec les câbles et active OUTPUT ; observe sinus, carré et triangle.', 'Règle u₁(t) = Û·sin(2πft) avec Û = 1 V et f = 1 kHz : l’écran doit afficher Frequency 1.000 00 kHz, Amplitude 2.000 V (crête à crête), Offset 0.000 V.', 'Vérifie que la source du trigger est CH1 (SOURCE dans la zone TRIGGER), puis fais AUTOSET.', 'Centre la flèche du 0 V avec POSITION, puis règle VOLTS/DIV et TIME/DIV pour remplir l’écran sur une à deux périodes.'],
+          hints: ['Sur le HMF, « Amplitude » est la valeur crête à crête : pour Û = 1 V, tape 2 puis la touche V (MHz).', 'Pour la fréquence : touche de menu Frequency, tape 1 puis kHz.', 'Calibre de tension ≈ Û / (Nv/2) et calibre de temps ≈ T / Nh, avec Nv = 8 divisions verticales et Nh = 12 horizontales.', 'Avec 0.5 V/div et 100 µs/div, le sinus occupe ±2 div et 1.2 période.'],
+          setups: [{ label: 'Câbles banane', make: () => t1leads({}, { ch1: { vdiv: 0.5 }, extra: { tb: 100e-6 } }) }] },
+        { n: '3', t: 'Limites du générateur et petit signal',
+          steps: ['Fais varier l’amplitude pour trouver les limites en tension du générateur.', 'Descends à 10 mV crête, fais AUTOSET, puis règle les échelles à la main pour un affichage optimal.', 'Commente la qualité du signal et la stabilité de l’affichage.', 'Remplace les câbles banane par un câble coaxial et compare.'],
+          hints: ['En High-Z, l’amplitude va jusqu’à 20 Vpp (Û max = 10 V) ; au-delà le générateur affiche « Value out of range ».', '10 mV crête = 20 mVpp : tape 20 puis la touche mV (kHz).', 'À 5 mV/div, le bruit capté par les fils banane et la quantification (8 bits) deviennent visibles.', 'Le câble coaxial est blindé : le bruit capté disparaît presque entièrement. Outil « Câble coaxial » dans le rabat de gauche.'],
+          setups: [{ label: '10 mV crête – câbles banane', make: () => t1leads({ ampl: 0.02 }, { ch1: { vdiv: 0.005 } }) }, { label: '10 mV crête – coaxial', make: () => t1coax({ ampl: 0.02 }, { ch1: { vdiv: 0.005 } }) }] },
+        { n: '4', t: 'Influence du trigger',
+          steps: ['Passe la source du trigger de CH1 à CH2 et commente la stabilité de l’affichage.', 'Revient sur CH1 puis déplace le niveau (LEVEL) d’un extrême à l’autre et commente.'],
+          hints: ['Sans signal sur la voie de déclenchement, l’oscilloscope en mode AUTO affiche sans synchronisation : la trace défile.', 'Si le niveau sort de l’amplitude du signal, il n’y a plus de front à détecter : même effet.', 'Près des crêtes, la pente est faible et le bruit fait varier l’instant de déclenchement : la trace tremble.'],
+          setups: [{ label: 'Sinus 1 kHz sur CH1', make: () => t1leads({}, { ch1: { vdiv: 0.5 } }) }] },
+        { n: '5', t: 'Offset, couplage AC/DC et mesures automatiques',
+          steps: ['Ajoute une composante continue de 1 V : u(t) = 1 + 1·sin(2πft) V (touche OFFSET puis Offset = 1 V).', 'Descends la référence pour centrer le signal, puis compare couplage DC et couplage AC.', 'En DC, ouvre AUTO MEASURE et affiche Peak +, Peak −, RMS, Mean, Frequency et Period.', 'Refais ces mesures avec QUICK VIEW, puis avec les curseurs.'],
+          hints: ['L’offset ne s’applique que si la touche OFFSET est allumée.', 'En couplage AC, la composante continue est bloquée : le signal se recentre sur 0 V.', 'AUTO MEASURE → MEAS. PLACE 1…6, puis TYPE et SOURCE avec le bouton universel.', 'Valeurs attendues : Peak + ≈ 2 V, Peak − ≈ 0 V, Mean ≈ 1 V, RMS ≈ √(1² + 1²/2) ≈ 1.22 V, f = 1 kHz.', 'Mean et RMS sont calculés sur tout l’écran : avec un nombre non entier de périodes affichées, ils sont faussés. Règle TIME/DIV pour afficher des périodes entières (ex. 500 µs/div → 6 périodes).'],
+          setups: [{ label: 'u = 1 + sin, 6 mesures', make: () => { const s = t1leads({ offset: 1, offOn: true }, { ch1: { vdiv: 0.5, pos: -2 }, extra: { tb: 500e-6 } }); s.dev.hmo.meas = [{ on: true, type: 'Peak +', src: 0 }, { on: true, type: 'Peak -', src: 0 }, { on: true, type: 'RMS Value', src: 0 }, { on: true, type: 'Mean', src: 0 }, { on: true, type: 'Frequency', src: 0 }, { on: true, type: 'Period', src: 0 }]; return s; } }] },
+        { n: '6', t: 'Multimètre : Ueff, UDC et f',
+          steps: ['Mesure au multimètre les composantes de u(t) : Ueff (AC V), UDC (DC V) et f.', 'Utilise 2nd Function pour afficher deux mesures à la fois : (Ueff ; UDC) puis (Ueff ; f).', 'Refais la mesure avec Û = 10 mV et commente.', 'Reviens à Û = 1 V et augmente la fréquence : à partir de quand la mesure de Ueff sort-elle de ±10 % ?'],
+          hints: ['2nd Function → SELECT, choisis avec le bouton universel, puis valide en appuyant sur le bouton.', 'Pour un sinus, Ueff = Û/√2 ≈ 0.707 V.', 'À 10 mV, Ueff ≈ 7 mV : le multimètre passe sur la gamme 400 mV, la résolution baisse.', 'La bande passante AC du HMC8012 est spécifiée jusqu’à 100 kHz ; au-delà la lecture chute (−10 % vers quelques centaines de kHz).'],
+          setups: [{ label: 'Générateur → HMC8012 + CH1', make: t1dmm }] },
+        { n: '7', t: 'Alimentation flottante en série avec le générateur',
+          steps: ['Réalise u(t) = 1 + 1·sin(2πft) V, la partie continue étant fournie cette fois par la HMP2030 (1 V).', 'La masse du générateur doit être reliée au COM du multimètre (et à la masse de l’oscilloscope).', 'Mesure au multimètre puis à l’oscilloscope et compare aux résultats précédents.', 'Intervertis le générateur et l’alimentation, refais les mesures et commente.'],
+          hints: ['La HMP2030 est flottante : aucune de ses bornes n’est reliée à la terre, on peut l’empiler sur le générateur.', 'La masse du générateur et celle de l’oscilloscope sont reliées à la terre du réseau.', 'Une fois intervertis, la borne + de la HMP se retrouve sur la masse du générateur, donc à la terre, comme sa borne − (via l’oscilloscope) : la source est court-circuitée, son bouton CH passe au rouge (limitation de courant).'],
+          setups: [{ label: 'Générateur puis HMP', make: () => t1series(false) }, { label: 'Interverti (HMP puis générateur)', make: () => t1series(true) }] },
+      ],
+    },
+    {
+      id: 'tp2', name: 'TP2', title: 'Lois fondamentales',
+      goal: 'Comparer sources réelles et idéales, vérifier les lois d’Ohm et de Kirchhoff.',
+      ex: [
+        { n: '1.1', t: 'Source de tension réelle : le générateur',
+          steps: ['Règle un sinus d’amplitude Û = 8 V à 1 kHz et observe-le à l’oscilloscope.', 'Branche une résistance de 47 Ω 3 W en parallèle sur la sortie et mesure la nouvelle amplitude U’.', 'Déduis-en la résistance interne et dessine le schéma équivalent du générateur.'],
+          hints: ['Û = 8 V correspond à 16 Vpp sur le HMF.', 'U’ = Û · 47 / (47 + Ri)  ⇒  Ri = 47 · (Û / U’ − 1).', 'On trouve U’ ≈ 3.88 V, donc Ri ≈ 50 Ω : la valeur inscrite à côté de la prise SIGNAL OUTPUT.', 'Précaution : tenir compte des 50 Ω dès que les résistances du circuit sont du même ordre.'],
+          setups: [{ label: 'Sans charge', make: () => t2gen(false) }, { label: 'Avec 47 Ω 3 W', make: () => t2gen(true) }] },
+        { n: '1.2', t: 'Source stabilisée : la HMP2030',
+          steps: ['Même essai avec la HMP2030 réglée à 8 V DC.', 'Mesure la tension avec et sans la résistance de 47 Ω 3 W et conclus.'],
+          hints: ['Avec 47 Ω, le courant vaut ≈ 170 mA : règle la limite de courant (CURRENT) au-dessus, sinon la source passe en CC (bouton rouge).', 'P = U²/R ≈ 1.36 W : d’où la résistance de 3 W.', 'La tension ne bouge pratiquement pas : la résistance interne de la HMP est quasi nulle.'],
+          setups: [{ label: 'Sans charge', make: () => t2psu(false) }, { label: 'Avec 47 Ω 3 W', make: () => t2psu(true) }] },
+        { n: '2.1', t: 'Mesure d’un courant continu',
+          steps: ['Réalise le circuit U₀ = 9 V, R₁ = 2.2 kΩ en série avec R₂ = 1.5 kΩ, avec un canal de la HMP2030.', 'Mesure I avec un HMC8012 en ampèremètre (bornes A et COM, en série) et note la gamme utilisée.', 'Inverse le sens de branchement de l’ampèremètre et mesure I’.'],
+          hints: ['Fonction DC I. L’ampèremètre se branche en série : il faut ouvrir le circuit pour l’insérer.', 'La gamme est choisie selon la valeur mesurée (gamme 20 mA ici).', 'I = 9 / 3.7 kΩ ≈ 2.43 mA. Inversé : I’ ≈ −2.43 mA, le courant réel circule dans le sens opposé à la flèche.'],
+          setups: [{ label: 'Ampèremètre dans le bon sens', make: () => t2divider(false, false) }, { label: 'Ampèremètre inversé', make: () => t2divider(true, false) }] },
+        { n: '2.2', t: 'Mesure d’une tension continue',
+          steps: ['Mesure U aux bornes de R₂ avec les deux multimètres et note la gamme utilisée.'],
+          hints: ['Le voltmètre se branche en parallèle (bornes V et COM), sans ouvrir le circuit.', 'U = 9 · 1.5 / 3.7 ≈ 3.65 V (gamme 4 V).', 'Le shunt de l’ampèremètre (13.75 Ω en gamme 20 mA) fait baisser très légèrement U.'],
+          setups: [{ label: 'Ampèremètre + voltmètre', make: () => t2divider(false, true) }] },
+        { n: '3.1', t: 'Loi de Kirchhoff des nœuds',
+          steps: ['Ajoute deux résistances : U₀ → R₁ → A ; A → R₂ → C ; A → R₁ → B ; B → R₂ → C (C = retour de U₀).', 'Écris la loi des nœuds en A et en C avec I₁, I₂ et I₃.', 'Mesure les trois courants, puis vérifie la loi en A et donne l’erreur.'],
+          hints: ['Avec deux multimètres, on mesure deux courants à la fois : déplace un ampèremètre pour le troisième.', 'Au nœud A : I₁ − I₂ + I₃ = 0 (avec I₃ orienté de C vers A).', 'Valeurs attendues : I₁ ≈ 2.755 mA, I₂ ≈ 0.79 mA, I₃ ≈ −1.96 mA.', 'I₃ est négatif car le courant réel va de A vers C, à l’opposé de la flèche du schéma.'],
+          setups: [{ label: 'Ampèremètres sur I₁ et I₂', make: () => t2kirch('I') }] },
+        { n: '3.2', t: 'Loi de Kirchhoff des mailles',
+          steps: ['Écris la loi des mailles sur ABCA avec UAB, UAC et UBC.', 'Mesure les trois tensions et vérifie la loi avec les valeurs mesurées.'],
+          hints: ['UAB − UAC + UBC = 0.', 'Valeurs attendues : UAB ≈ 1.75 V, UAC ≈ 2.93 V, UBC ≈ 1.19 V.', 'Attention au sens de branchement : V sur le premier indice, COM sur le second.'],
+          setups: [{ label: 'Voltmètres sur UAB et UAC', make: () => t2kirch('U') }] },
+      ],
+    },
+    {
+      id: 'tp3', name: 'TP3', title: 'Théorèmes fondamentaux',
+      goal: 'Vérifier les théorèmes de Thévenin, de Norton et de superposition.',
+      ex: [
+        { n: '1.1a', t: 'Thévenin : tension à vide UTH',
+          steps: ['Réalise le circuit : U₀ = 6 V → R₁ → C ; C → R₂ → U₁ = 3 V ; C → R₁ → A ; A → R₂’ → B (R₁ = 2.2 kΩ, R₂ = R₂’ = 1 kΩ).', 'Calcule RTH et UTH du dipôle AB.', 'Mesure UAB et explique ce qu’elle représente.'],
+          hints: ['Les deux canaux de la HMP sont flottants : relie leurs bornes − au point B.', 'Isole d’abord le dipôle CB : UTH,CB = (U₀R₂ + U₁R₁)/(R₁ + R₂) ≈ 3.94 V et RTH,CB = R₁∥R₂ ≈ 688 Ω.', 'Puis UTH = UTH,CB · R₂’/(R₂’ + R₁ + RTH,CB) ≈ 1.01 V et RTH = (R₁ + RTH,CB)∥R₂’ ≈ 743 Ω.', 'UAB à vide ≈ 1.01 V : c’est la tension de Thévenin.'],
+          setups: [{ label: 'Circuit + voltmètre AB', make: () => t3() }] },
+        { n: '1.1b', t: 'Thévenin : résistance RTH',
+          steps: ['Annule les deux sources en les réglant à 0 V, en laissant la HMP allumée.', 'Mesure la résistance entre A et B à l’ohmmètre.', 'Propose et réalise deux autres méthodes de mesure de RTH, puis conclus.'],
+          hints: ['Une source de tension annulée = un court-circuit : régler 0 V sortie active, pas débrancher ni couper OUTPUT.', 'Si tu coupes OUTPUT, la sortie n’est plus un court-circuit et la lecture change.', 'R ≈ 743 Ω.', 'Autres méthodes : courant de Norton IN (ampèremètre entre A et B) puis RTH = UTH/IN ; ou charge variable jusqu’à U = UTH/2.'],
+          setups: [{ label: 'Sources à 0 V + ohmmètre', make: () => t3({ u0: 0, u1: 0, meter: 'OHM' }) }] },
+        { n: '1.1c', t: 'Norton : courant de court-circuit IN',
+          steps: ['Branche un ampèremètre directement entre A et B.', 'Mesure IN et déduis RTH = UTH / IN.'],
+          hints: ['L’ampèremètre (shunt de quelques Ω) court-circuite pratiquement R₂’.', 'IN ≈ 1.36 mA, donc RTH ≈ 1.01 V / 1.36 mA ≈ 743 Ω.'],
+          setups: [{ label: 'Ampèremètre entre A et B', make: () => t3({ meter: 'DCI' }) }] },
+        { n: '1.2', t: 'Superposition de deux sources DC',
+          steps: ['Calcule la contribution de U₀, celle de U₁ et la tension totale UAB.', 'Mesure UAB,0 (U₁ = 0 V), UAB,1 (U₀ = 0 V) et UAB (les deux sources).', 'Le principe de superposition est-il vérifié ? Pourquoi ?'],
+          hints: ['Pour annuler une source : règle-la à 0 V sans la débrancher.', 'UAB,0 ≈ 0.48 V, UAB,1 ≈ 0.53 V, UAB ≈ 1.01 V.', 'Oui : le circuit est linéaire (loi d’Ohm), les contributions s’additionnent.'],
+          setups: [{ label: 'U₀ seule', make: () => t3({ u1: 0 }) }, { label: 'U₁ seule', make: () => t3({ u0: 0 }) }, { label: 'U₀ + U₁', make: () => t3() }] },
+        { n: '1.3', t: 'Puissance fournie à R₂’ (DC)',
+          steps: ['À partir de 1.2, calcule P₀, P₁ et P₀₊₁ dissipées dans R₂’.', 'Compare P₀₊₁ à P₀ + P₁ et explique.'],
+          hints: ['P = UAB² / R₂’.', 'P₀ ≈ 0.23 mW, P₁ ≈ 0.28 mW, P₀₊₁ ≈ 1.02 mW.', 'P₀₊₁ ≠ P₀ + P₁ : (UAB,0 + UAB,1)² fait apparaître le terme croisé 2·UAB,0·UAB,1/R₂’. La superposition ne s’applique pas aux puissances (relation quadratique).'],
+          setups: [{ label: 'U₀ + U₁', make: () => t3() }] },
+        { n: '1.4', t: 'Superposition d’une source AC et d’une source DC',
+          steps: ['Remplace U₁ par le générateur : u₁(t) = 3·sin(2πft) V, f = 1 kHz.', 'Calcule puis mesure les contributions de U₀ et de u₁, et la tension totale uAB(t).', 'Vérifie le principe de superposition.'],
+          hints: ['Û = 3 V ⇒ 6 Vpp sur le HMF.', 'La masse du générateur est reliée à la terre : branche-la au point B, la référence commune, comme la masse de l’oscilloscope.', 'uAB(t) ≈ 0.48 + 0.53·sin(2πft) V.', 'Le multimètre en DC V donne la contribution de U₀ (≈ 0.48 V), en AC V la valeur efficace de celle de u₁ (≈ 0.53/√2 ≈ 0.375 V).', 'Les 50 Ω internes du générateur s’ajoutent à R₂ : on mesure plutôt ≈ 0.49 V et ≈ 0.37 V eff. Refais le calcul avec R₂ + 50 Ω pour retrouver ces valeurs.'],
+          setups: [{ label: 'U₀ (HMP) + u₁ (générateur)', make: () => t3({ gen: true }) }, { label: 'u₁ seule (U₀ = 0 V)', make: () => t3({ gen: true, u0: 0 }) }] },
+        { n: '1.5', t: 'Puissance moyenne fournie à R₂’ (AC + DC)',
+          steps: ['À partir de 1.4, calcule la puissance moyenne fournie à R₂’ par U₀, par u₁ et par les deux.', 'Compare P₀₊₁ à P₀ + P₁ et explique.'],
+          hints: ['P₀ = UAB,0² / R₂’ ≈ 0.23 mW.', 'P₁ = UAB,1,eff² / R₂’ = ÛAB,1² / (2R₂’) ≈ 0.14 mW.', 'Ici P₀₊₁ ≈ P₀ + P₁ ≈ 0.37 mW : la moyenne du terme croisé 2·UAB,0·ÛAB,1·sin(2πft) est nulle sur une période.'],
+          setups: [{ label: 'U₀ (HMP) + u₁ (générateur)', make: () => t3({ gen: true }) }] },
+      ],
+    },
+  ];
+})();
+
+'use strict';
 /* PocketBench — application shell */
 (function () {
   const t = PB.t;
@@ -3349,7 +3660,8 @@ Object.assign(PB.I18N.en, {
 
   class App {
     constructor() {
-      this.settings = Object.assign({ theme: 'auto', lang: 'fr', sound: true, vol: 0.7, fans: true }, this.lsGet('pocketbench.settings') || {});
+      this.settings = Object.assign({ theme: 'auto', lang: 'fr', sound: true, vol: 0.7, fans: true, left: true, tp: null }, this.lsGet('pocketbench.settings') || {});
+      this.settings.tp = Object.assign({ open: false, sel: 'tp1', ex: [], hints: {} }, this.settings.tp || {});
       PB.sfx.on = this.settings.sound; PB.sfx.vol = this.settings.vol; PB.sfx.fans = this.settings.fans;
       PB.lang = this.settings.lang;
       this.view = { x: 20, y: 20, z: 0.5 };
@@ -3358,6 +3670,7 @@ Object.assign(PB.I18N.en, {
       this.hist = []; this.redoStack = [];
       this.vp = $('#vp'); this.world = $('#world'); this.cablesSvg = $('#cables');
       this.applyTheme();
+      this.applyPanels();
       const saved = this.lsGet('pocketbench.autosave');
       this.proj = this.blankProject();
       this.createDevices();
@@ -3366,6 +3679,7 @@ Object.assign(PB.I18N.en, {
       this.bindWorld();
       if (saved) this.loadProject(saved, true); else { this.defaultLayout(); this.applyProject(); setTimeout(() => this.fit(), 30); }
       this.translate();
+      this.renderTP();
       this.setHint();
       this.lastSolve = 0; this.isDirty = true; this.saveDue = 0;
       requestAnimationFrame((n) => this.loop(n));
@@ -3735,6 +4049,8 @@ Object.assign(PB.I18N.en, {
         case 'zout': { const v = this.vp.getBoundingClientRect(); return this.zoomAt(v.left + v.width / 2, v.top + v.height / 2, 0.8); }
         case 'fit': return this.fit();
         case 'settings': return this.openSettings();
+        case 'toggleLeft': this.settings.left = !this.settings.left; this.applyPanels(); return this.saveSettings();
+        case 'toggleTP': this.settings.tp.open = !this.settings.tp.open; this.applyPanels(); return this.saveSettings();
       }
     }
     onKey(e) {
@@ -4063,7 +4379,7 @@ Object.assign(PB.I18N.en, {
       d.innerHTML = `<form method="dialog" class="dlg">
         <header><h2>${t('set.title')}</h2><button class="x" value="close" aria-label="${t('set.close')}">✕</button></header>
         <div class="row"><span>${t('set.theme')}</span>${seg('theme', [['auto', t('set.auto')], ['light', t('set.light')], ['dark', t('set.dark')]], st.theme)}</div>
-        <div class="row"><span>${t('set.lang')}</span>${seg('lang', [['fr', 'Français'], ['en', 'English']], st.lang)}</div>
+        <div class="row"><span>${t('set.lang')}</span>${seg('lang', [['fr', 'Français'], ['en', 'English'], ['de', 'Deutsch']], st.lang)}</div>
         <div class="row"><span>${t('set.scope')}</span>${seg('scope', [['HMO2024', 'HMO2024'], ['HMO724', 'HMO724']], p.models.scope)}</div>
         <div class="row"><span>${t('set.gen')}</span>${seg('gen', [['HMF2550', 'HMF2550'], ['HMF2525', 'HMF2525']], p.models.gen)}</div>
         <h3>${t('set.sim')}</h3>
@@ -4098,11 +4414,77 @@ Object.assign(PB.I18N.en, {
     openProjects() {
       const d = $('#dlgProjects');
       const idx = this.lsGet('pocketbench.projects') || [];
-      const rows = idx.map((m) => `<li><div><b>${PB.esc(m.name)}</b><small>${new Date(m.savedAt).toLocaleString(PB.lang === 'fr' ? 'fr-CH' : 'en-GB')}</small></div><button type="button" class="btn" data-open="${m.id}">${t('pr.open')}</button><button type="button" class="btn danger" data-del="${m.id}">${t('pr.del')}</button></li>`).join('');
+      const rows = idx.map((m) => `<li><div><b>${PB.esc(m.name)}</b><small>${new Date(m.savedAt).toLocaleString({ fr: 'fr-CH', en: 'en-GB', de: 'de-CH' }[PB.lang] || 'fr-CH')}</small></div><button type="button" class="btn" data-open="${m.id}">${t('pr.open')}</button><button type="button" class="btn danger" data-del="${m.id}">${t('pr.del')}</button></li>`).join('');
       d.innerHTML = `<form method="dialog" class="dlg"><header><h2>${t('pr.title')}</h2><button class="x" value="close">✕</button></header>${idx.length ? `<ul class="plist">${rows}</ul>` : `<p class="muted">${t('pr.empty')}</p>`}</form>`;
       d.querySelectorAll('[data-open]').forEach((b) => (b.onclick = () => { const data = this.lsGet('pocketbench.p.' + b.dataset.open); if (data && this.loadProject(data)) { d.close(); this.autosave(); } }));
       d.querySelectorAll('[data-del]').forEach((b) => (b.onclick = () => { const m = idx.find((x) => x.id === b.dataset.del); if (!confirm(t('pr.confirmDel', { n: m.name }))) return; try { localStorage.removeItem('pocketbench.p.' + m.id); } catch (e) {} this.lsSet('pocketbench.projects', idx.filter((x) => x !== m)); this.openProjects(); }));
       if (!d.open) d.showModal();
+    }
+    saveSettings() { this.lsSet('pocketbench.settings', this.settings); }
+    applyPanels() {
+      const st = this.settings;
+      document.body.classList.toggle('no-left', !st.left);
+      document.body.classList.toggle('tp-open', !!st.tp.open);
+      $('#btnLeft').classList.toggle('on', !!st.left);
+      $('#btnTP').classList.toggle('on', !!st.tp.open);
+      clearTimeout(this.pt); this.pt = setTimeout(() => { this.devList.forEach((d) => (d.rt.needDraw = true)); this.renderCables(); }, 260);
+    }
+    renderTP() {
+      const st = this.settings.tp, TPS = PB.TPS || [];
+      const tp = TPS.find((x) => x.id === st.sel) || TPS[0]; if (!tp) return;
+      $('#tpTabs').innerHTML = TPS.map((x) => `<button type="button" data-tp="${x.id}" class="${x.id === tp.id ? 'on' : ''}">${x.name}</button>`).join('');
+      const icon = '<svg viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M4 19h16"/></svg>';
+      let h = `<div class="tp-title">${PB.esc(tp.name + ' — ' + tp.title)}</div><p class="tp-goal">${PB.esc(tp.goal)}</p>`;
+      if (PB.lang !== 'fr' && t('tp.frOnly')) h += `<p class="note" style="margin:-4px 0 12px">${t('tp.frOnly')}</p>`;
+      for (const e of tp.ex) {
+        const key = tp.id + ':' + e.n, n = st.hints[key] || 0;
+        h += `<details class="ex" data-ex="${key}"${st.ex.includes(key) ? ' open' : ''}><summary><span class="exn">${PB.esc(e.n)}</span><span>${PB.esc(e.t)}</span></summary><div class="ex-body">`;
+        h += `<h4>${t('tp.steps')}</h4><ol>${e.steps.map((x) => `<li>${PB.esc(x)}</li>`).join('')}</ol>`;
+        if (e.setups && e.setups.length) h += `<h4>${t('tp.setups')}</h4><div class="setups">${e.setups.map((s, i) => `<button type="button" class="btn" data-setup="${key}|${i}">${icon}${PB.esc(s.label)}</button>`).join('')}</div>`;
+        if (e.hints && e.hints.length) {
+          h += e.hints.slice(0, n).map((x, i) => `<div class="hint"><b>${t('tp.hint')} ${i + 1}</b>${PB.esc(x)}</div>`).join('');
+          h += `<div class="hint-actions">${n < e.hints.length ? `<button type="button" class="btn" data-hint="${key}">${n ? t('tp.nextHint') : t('tp.moreHint')} (${n + 1}/${e.hints.length})</button>` : ''}${n ? `<button type="button" class="btn" data-hidehints="${key}">${t('tp.hideHints')}</button>` : ''}</div>`;
+        }
+        h += '</div></details>';
+      }
+      const body = $('#tpBody'); const sc = $('#tp').scrollTop;
+      body.innerHTML = h; $('#tp').scrollTop = sc;
+      if (!this.tpBound) {
+        this.tpBound = true;
+        $('#tpTabs').addEventListener('click', (ev) => { const b = ev.target.closest('[data-tp]'); if (!b) return; this.settings.tp.sel = b.dataset.tp; this.saveSettings(); this.renderTP(); $('#tp').scrollTop = 0; });
+        $('#tpBody').addEventListener('click', (ev) => {
+          const s = ev.target.closest('[data-setup]'), hb = ev.target.closest('[data-hint]'), hh = ev.target.closest('[data-hidehints]');
+          if (s) { const [key, i] = s.dataset.setup.split('|'); this.loadTPSetup(key, +i); }
+          else if (hb) { const k = hb.dataset.hint; this.settings.tp.hints[k] = (this.settings.tp.hints[k] || 0) + 1; this.saveSettings(); this.renderTP(); }
+          else if (hh) { delete this.settings.tp.hints[hh.dataset.hidehints]; this.saveSettings(); this.renderTP(); }
+        });
+        $('#tpBody').addEventListener('toggle', (ev) => {
+          const d = ev.target; if (!d.dataset || !d.dataset.ex) return;
+          const set = new Set(this.settings.tp.ex); if (d.open) set.add(d.dataset.ex); else set.delete(d.dataset.ex);
+          this.settings.tp.ex = [...set]; this.saveSettings();
+        }, true);
+      }
+    }
+    loadTPSetup(key, i) {
+      const [tpId, n] = key.split(':');
+      const tp = PB.TPS.find((x) => x.id === tpId), ex = tp && tp.ex.find((e) => e.n === n), su = ex && ex.setups[i];
+      if (!su) return;
+      const p = this.proj;
+      if ((p.comps.length || p.wires.length || p.cables.length || p.adapters.length) && !confirm(t('tp.confirm'))) return;
+      const s = su.make();
+      this.cancelPend(); this.tool = 'select'; this.ui.place = null; this.sel = null;
+      this.mutate(() => { p.comps = JSON.parse(JSON.stringify(s.comps)); p.wires = JSON.parse(JSON.stringify(s.wires)); p.cables = JSON.parse(JSON.stringify(s.cables)); p.adapters = JSON.parse(JSON.stringify(s.adapters)); });
+      for (const d of this.devList) {
+        const st = Object.assign(d.defaults(), { on: s.on.includes(d.id) });
+        PB.merge(st, JSON.parse(JSON.stringify(s.dev[d.id] || {})));
+        d.state = st;
+        Object.assign(d.rt, { boot: -1e9, rec: null, disp: null, meas: null, mres: null, raw: null, avgBuf: null, env: null, persist: null, pop: null, info: null, entry: null, knobItem: null, slow: null, hist: [], needDraw: true });
+        if (d.kind === 'hmc') PB.sfx.toneOff(d.id);
+      }
+      this.syncFans(); this.refreshTools(); this.renderInspector(); this.dirty(); this.markSave();
+      PB.sfx.plug(); PB.sfx.bnc(0.15); PB.sfx.plug(0.3);
+      this.fit();
+      this.toast(t('tp.loaded', { n: `${tp.name} ${ex.n} · ${su.label}` }));
     }
     applyTheme() {
       const th = this.settings.theme === 'auto' ? (window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : this.settings.theme;
@@ -4114,7 +4496,7 @@ Object.assign(PB.I18N.en, {
       document.querySelectorAll('[data-i18n]').forEach((e) => (e.textContent = t(e.dataset.i18n)));
       document.querySelectorAll('[data-i18n-title]').forEach((e) => (e.title = t(e.dataset.i18nTitle)));
       for (const d of this.devList) { const sub = d.el.querySelector('.dt-sub'); if (sub && d.subtitle) sub.textContent = d.subtitle(); }
-      this.setHint(); this.renderInspector(); this.refreshTools();
+      this.setHint(); this.renderInspector(); this.refreshTools(); if (PB.TPS) this.renderTP();
     }
     /* ---------- simulation ---------- */
     dirty() { this.isDirty = true; }

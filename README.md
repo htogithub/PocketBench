@@ -18,7 +18,11 @@ Synthesized sound effects (no audio files): key presses, knob detents, internal 
 
 Open `index.html` in a desktop browser. Projects are autosaved in the browser, can be saved under a name, and exported/imported as `.pbench` files that restore the bench exactly.
 
-Light and dark themes, French and English interface.
+Light and dark themes; French, English and German interface. Both side panels can be hidden.
+
+## Lab sessions
+
+An optional right-hand panel walks through the first lab sessions (instrumentation, fundamental laws, Thévenin/Norton/superposition). For every exercise it gives the instructions, progressive hints, and one or more ready-made setups that wire the board and configure the instruments in one click. The lab content is in French, as in the course.
 
 ## Hosting
 
