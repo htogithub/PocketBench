@@ -12,6 +12,8 @@ It reproduces the front panels of the bench instruments and a Hirschmann breadbo
 
 The simulation includes real-world effects: 50 Ω generator output resistance, power-supply current limiting, meter shunts and input impedances, AC bandwidth of the multimeter, common earth of the oscilloscope and generator, quantisation, noise and pickup on unshielded leads. An "ideal instruments" setting turns these off.
 
+Circuits driven by DC sources are simulated in real time: capacitors charge and discharge with their true time constant, keep their charge between manipulations, and the oscilloscope's ROLL mode shows the curve as it builds up.
+
 Synthesized sound effects (no audio files): key presses, knob detents, internal relays, banana and BNC plugs, breadboard inserts, instrument beeps (including the multimeter continuity tester) and optional fan noise.
 
 ## Use
@@ -29,7 +31,7 @@ The **Schematic** button opens a two-way tool:
 
 ## Lab sessions
 
-An optional right-hand panel walks through the first lab sessions (instrumentation, fundamental laws, Thévenin/Norton/superposition). For every exercise it gives the instructions, progressive hints, and one or more ready-made setups that wire the board and configure the instruments in one click. The lab content is in French, as in the course.
+An optional right-hand panel walks through the first lab sessions (instrumentation, fundamental laws, Thévenin/Norton/superposition, the capacitor). For every exercise it gives the instructions, progressive hints, and one or more ready-made setups that wire the board and configure the instruments in one click. The lab content is in French, as in the course.
 
 ## Hosting
 

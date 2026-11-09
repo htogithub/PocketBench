@@ -403,8 +403,8 @@ dialog.big { width: 94vw; max-width: 1700px; height: 90vh; max-height: 90vh; ove
 <script>'use strict';
 /* PocketBench — utilities */
 const PB = window.PB = {};
-PB.VERSION = '1.3.0';
-PB.BUILD = '2026-11-05';
+PB.VERSION = '1.4.0';
+PB.BUILD = '2026-11-09';
 
 PB.clamp = (x, a, b) => (x < a ? a : x > b ? b : x);
 PB.gauss = () => { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
@@ -759,7 +759,7 @@ PB.t = (k, vars) => {
         const o = { p: r[0], nn: r[1], vp: r[2], vn: r[3], out: r[4], x: n++, oi: n++, tag: e.tag };
         sys.oas.push(o);
         sys.gs.push([o.p, o.nn, 1 / OA.rin], [o.vp, o.vn, 1 / OA.rq], [o.x, -1, 1 / OA.r1], [o.oi, o.out, 1 / OA.rout]);
-        sys.caps.push({ a: o.x, b: -1, c: OA.c1 });
+        sys.caps.push({ a: o.x, b: -1, c: OA.c1, tag: e.tag ? e.tag + ':c1' : null });
       } else pend.push([e, r]);
     }
     let nb = 0;
@@ -768,7 +768,7 @@ PB.t = (k, vars) => {
     for (const [e, r] of pend) {
       switch (e.t) {
         case 'R': sys.gs.push([r[0], r[1], 1 / Math.max(e.rv, 1e-6)]); break;
-        case 'C': sys.caps.push({ a: r[0], b: r[1], c: e.c }); break;
+        case 'C': sys.caps.push({ a: r[0], b: r[1], c: e.c, tag: e.tag || null }); break;
         case 'L': branchQueue.push(() => sys.inds.push({ a: r[0], b: r[1], k: br(), l: e.l, rs: e.rs || 0, tag: e.tag })); break;
         case 'V': branchQueue.push(() => { const v = { a: r[0], b: r[1], k: br(), rs: e.rs || 0, dc: e.v || 0, wave: e.wave || null, tag: e.tag }; sys.vs.push(v); if (e.tag) sys.tags.set(e.tag, v); }); break;
         case 'I': sys.is.push({ a: r[0], b: r[1], i: e.i, tag: e.tag }); break;
@@ -976,8 +976,7 @@ PB.t = (k, vars) => {
   }
 
   /* ---------- top-level solve ---------- */
-  function solve(nl, opts) {
-    opts = opts || {};
+  function group(nl) {
     let els = nl.elems.map((e) => Object.assign({}, e, { r: e.n.map((k) => nl.find(k)) }));
     // a power-supply channel whose terminals are tied together (e.g. both to earth) runs in current limit
     const shorted = els.filter((e) => e.t === 'PSU' && e.r[0] === e.r[1]);
@@ -998,6 +997,36 @@ PB.t = (k, vars) => {
       if (!comps.has(c)) comps.set(c, { nodes: new Set(), els: [] });
       const C = comps.get(c); C.els.push(e); for (const r of ng) C.nodes.add(r);
     }
+    return { comps, shorted };
+  }
+  /* PSU constant-voltage / constant-current decision on a result (N samples) */
+  function psuCheck(sys, out, N, modes) {
+    let changed = false;
+    for (const ps of sys.psus) {
+      const e = ps.e;
+      if (ps.mode === 'CV') {
+        const k = ps.src.k; let imax = 0, sgn = 1;
+        for (let m = 0; m < N; m++) { const iout = -out[m * sys.nu + k]; if (Math.abs(iout) > imax) { imax = Math.abs(iout); sgn = Math.sign(iout) || 1; } }
+        if (imax > e.ilim * 1.0005) { modes.set(e.tag, { mode: 'CC', dir: sgn }); changed = true; }
+      } else {
+        const a = ps.src.b, b = ps.src.a;
+        let vmax = 0;
+        for (let m = 0; m < N; m++) { const v = (a >= 0 ? out[m * sys.nu + a] : 0) - (b >= 0 ? out[m * sys.nu + b] : 0); vmax = Math.max(vmax, v * ps.dir); }
+        if (vmax > e.v + 1e-6) { modes.set(e.tag, { mode: 'CV' }); changed = true; }
+      }
+    }
+    return changed;
+  }
+  function publish(sol, sys, R) {
+    sys.nodeIdx.forEach((col, key) => sol.map.set(key, [R, col]));
+    for (const v of sys.vs) if (v.tag) sol.br.set(v.tag, [R, v.k, -1]);
+    for (const ps of sys.psus) sol.psu.set(ps.e.tag, ps.mode === 'CV' ? { mode: 'CV' } : { mode: 'CC', i: ps.e.ilim * ps.dir });
+    for (const d of sys.ds) if (d.tag) sol.diodes.set(d.tag, [R, d.a, d.b, d.m]);
+    sol.reactive.push({ R, caps: sys.caps.map((c) => ({ tag: c.tag, a: c.a, b: c.b })), inds: sys.inds.map((l) => ({ tag: l.tag, k: l.k })) });
+  }
+  function solve(nl, opts) {
+    opts = opts || {};
+    const { comps, shorted } = group(nl);
     const sol = new Solution(nl, opts.T || null);
     for (const e of shorted) sol.psu.set(e.tag, { mode: 'CC', i: e.ilim });
     const t0 = performance.now();
@@ -1015,36 +1044,83 @@ PB.t = (k, vars) => {
           while (Nn > 512 && cost * Nn > 3e8) Nn >>= 1;
           res = periodic(sys, opts.T, Nn, Math.max(60, (opts.budget || 400) - (performance.now() - t0)));
         } else res = { N: 1, out: dcSolve(sys) };
-        // PSU CV/CC
-        let changed = false;
-        for (const ps of sys.psus) {
-          const e = ps.e;
-          if (ps.mode === 'CV') {
-            const k = ps.src.k; let imax = 0, sgn = 1;
-            for (let m = 0; m < res.N; m++) { const iout = -res.out[m * sys.nu + k]; if (Math.abs(iout) > imax) { imax = Math.abs(iout); sgn = Math.sign(iout) || 1; } }
-            if (imax > e.ilim * 1.0005) { modes.set(e.tag, { mode: 'CC', dir: sgn }); changed = true; }
-          } else {
-            const a = ps.src.b, b = ps.src.a; // src from m to p ; a=p b=m
-            let vmax = 0;
-            for (let m = 0; m < res.N; m++) { const v = (a >= 0 ? res.out[m * sys.nu + a] : 0) - (b >= 0 ? res.out[m * sys.nu + b] : 0); vmax = Math.max(vmax, v * ps.dir); }
-            if (vmax > e.v + 1e-6) { modes.set(e.tag, { mode: 'CV' }); changed = true; }
-          }
-        }
-        if (!changed) break;
+        if (!psuCheck(sys, res.out, res.N, modes)) break;
       }
-      const R = { N: res.N, nu: sys.nu, out: res.out };
-      sys.nodeIdx.forEach((col, key) => sol.map.set(key, [R, col]));
-      for (const v of sys.vs) if (v.tag) sol.br.set(v.tag, [R, v.k, -1]);
-      for (const ps of sys.psus) sol.psu.set(ps.e.tag, ps.mode === 'CV' ? { mode: 'CV' } : { mode: 'CC', i: ps.e.ilim * ps.dir });
-      for (const d of sys.ds) if (d.tag) sol.diodes.set(d.tag, [R, d.a, d.b, d.m]);
+      publish(sol, sys, { N: res.N, nu: sys.nu, out: res.out });
     }
     sol.ms = performance.now() - t0;
     return sol;
   }
 
+  /* ---------- real-time transient (DC sources only): capacitor charges and inductor currents evolve in time ---------- */
+  function transient(nl, opts) {
+    opts = opts || {};
+    const { comps, shorted } = group(nl);
+    const seed = opts.states || null;
+    const parts = [];
+    const tagsOf = (P) => { const m = new Map(); let j = 0; for (const c of P.sys.caps) { if (c.tag) m.set(c.tag, P.s[j]); j++; } for (const L of P.sys.inds) { if (L.tag) m.set(L.tag, P.s[j]); j++; } return m; };
+    const loadStates = (P, map) => { let j = 0; for (const c of P.sys.caps) { P.s[j] = c.tag && map && map.has(c.tag) ? map.get(c.tag) : 0; j++; } for (const L of P.sys.inds) { P.s[j] = L.tag && map && map.has(L.tag) ? map.get(L.tag) : 0; j++; } };
+    for (const C of comps.values()) {
+      if (!C.els.some((e) => e.t === 'V' || e.t === 'I' || e.t === 'PSU' || e.t === 'C' || e.t === 'L' || e.t === 'OA')) continue;
+      const P = { nodes: [...C.nodes], els: C.els, modes: new Map() };
+      P.sys = buildSys(P.nodes, P.els, P.modes); P.s = new Float64Array(P.sys.ns);
+      if (!seed) { // start in the DC steady state
+        for (let pass = 0; pass < 5; pass++) { P.x = dcSolve(P.sys); if (!psuCheck(P.sys, P.x, 1, P.modes)) break; P.sys = buildSys(P.nodes, P.els, P.modes); }
+        P.s = new Float64Array(P.sys.ns); getStates(P.sys, P.x, P.s);
+      } else { loadStates(P, seed); P.x = new Float64Array(P.sys.nu); }
+      parts.push(P);
+    }
+    const sub = (P, h) => {
+      for (let pass = 0; pass < 4; pass++) {
+        const sys = P.sys;
+        if (P.h !== h || !P.A) { P.A = buildA(sys, h); if (!sys.nl) { P.LU = Float64Array.from(P.A); P.piv = PB.lu(P.LU, sys.nu); } P.h = h; }
+        const rhs = new Float64Array(sys.nu);
+        buildRhs(sys, null, h, P.s, true, 1, rhs);
+        const x = sys.nl ? newton(sys, P.A, rhs, P.x, 50).x : PB.luSolve(P.LU, P.piv, sys.nu, rhs);
+        if (psuCheck(sys, x, 1, P.modes)) { const keep = tagsOf(P); P.sys = buildSys(P.nodes, P.els, P.modes); P.s = new Float64Array(P.sys.ns); loadStates(P, keep); P.A = null; continue; }
+        P.x = x; getStates(sys, x, P.s); return;
+      }
+    };
+    const tr = {
+      t: 0,
+      step(dt) {
+        dt = Math.min(Math.max(dt, 0), 1); if (!dt) return 0;
+        let change = 0;
+        for (const P of parts) {
+          const before = Float64Array.from(P.s);
+          const n = Math.max(1, Math.min(24, Math.ceil(dt / 0.002))), h = dt / n;
+          for (let k = 0; k < n; k++) sub(P, h);
+          for (let i = 0; i < P.s.length; i++) change = Math.max(change, Math.abs(P.s[i] - before[i]) / (1e-3 + Math.abs(P.s[i])));
+        }
+        tr.t += dt; return change;
+      },
+      states() { const m = new Map(); for (const P of parts) tagsOf(P).forEach((v, k) => m.set(k, v)); return m; },
+      solution() {
+        const sol = new Solution(nl, null);
+        for (const e of shorted) sol.psu.set(e.tag, { mode: 'CC', i: e.ilim });
+        for (const P of parts) publish(sol, P.sys, { N: 1, nu: P.sys.nu, out: P.x });
+        sol.ms = 0; sol.transient = true;
+        return sol;
+      },
+    };
+    if (seed) tr.step(1e-6); // make node voltages consistent with the seeded states
+    return tr;
+  }
+
   const ZERO = new Float64Array([0]);
   class Solution {
-    constructor(nl, T) { this.nl = nl; this.T = T; this.map = new Map(); this.br = new Map(); this.psu = new Map(); this.diodes = new Map(); this.cache = new Map(); }
+    constructor(nl, T) { this.nl = nl; this.T = T; this.map = new Map(); this.br = new Map(); this.psu = new Map(); this.diodes = new Map(); this.cache = new Map(); this.reactive = []; }
+    /* capacitor voltages / inductor currents at a given phase of the period (to continue in transient mode) */
+    statesAt(phase) {
+      const m = new Map();
+      for (const { R, caps, inds } of this.reactive) {
+        const i = R.N === 1 ? 0 : Math.floor(((phase % 1) + 1) % 1 * R.N) % R.N;
+        const x = (c) => (c >= 0 ? R.out[i * R.nu + c] : 0);
+        for (const c of caps) if (c.tag) m.set(c.tag, x(c.a) - x(c.b));
+        for (const L of inds) if (L.tag) m.set(L.tag, x(L.k));
+      }
+      return m;
+    }
     wave(key) {
       const r = this.nl.find(key);
       if (r === 'GND') return ZERO;
@@ -1140,6 +1216,7 @@ PB.t = (k, vars) => {
 
   PB.Netlist = Netlist;
   PB.solve = solve;
+  PB.transient = transient;
   PB.acZ = acZ;
   PB.wstats = stats;
   PB.acAnalysis = acAnalysis;
@@ -1283,7 +1360,7 @@ PB.t = (k, vars) => {
       this.rt.boot = -1e9; this.rt.needDraw = true;
     }
     scrScale() { return Math.min(3, (window.devicePixelRatio || 1) * Math.max(1, this.app.view.z)); }
-    stamp() {} onSolve() {} tick() {} render() {}
+    stamp() {} onSolve() {} onTransient(sol, ctx) { this.onSolve(sol, ctx); } tick() {} render() {}
   }
   PB.Device = Device;
 
@@ -2910,6 +2987,26 @@ Object.assign(PB.I18N.de, {
         nl.add({ t: 'R', n: ['scope.ch' + (i + 1), 'GND'], rv: ctx.ideal ? 1e12 : (this.is2024 && c.z50 && this.state.on ? 50 : 1e6) });
       }
     }
+    /* light update during real-time transients (no impedance recalculation) */
+    onTransient(sol) {
+      this.rt.sol = sol; this.rt.T = null; this.rt.xc = {};
+      for (let i = 0; i < 4; i++) { const w = sol.wave('scope.ch' + (i + 1)); this.rt.waves[i] = w; this.rt.chData[i] = PB.wstats(w); }
+      this.pushHist();
+    }
+    pushHist() {
+      const now = performance.now() / 1000;
+      let H = this.rt.trace;
+      if (!H || (H.t.length && now - H.t[H.t.length - 1] > 2)) H = this.rt.trace = { t: [], v: [[], [], [], []] };
+      H.t.push(now); for (let i = 0; i < 4; i++) H.v[i].push(this.rt.waves[i][0]);
+      if (H.t.length > 15000) { const k = H.t.length - 12000; H.t.splice(0, k); H.v.forEach((a) => a.splice(0, k)); }
+    }
+    histAt(i, t) {
+      const H = this.rt.trace; if (!H || !H.t.length) return this.sigAt(i, 0);
+      const T = H.t, V = H.v[i]; const n = T.length;
+      if (t <= T[0]) return V[0]; if (t >= T[n - 1]) return V[n - 1];
+      let lo = 0, hi = n - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (T[m] <= t) lo = m; else hi = m; }
+      const f = (t - T[lo]) / ((T[hi] - T[lo]) || 1); return V[lo] + f * (V[hi] - V[lo]);
+    }
     onSolve(sol, ctx) {
       this.rt.sol = sol; this.rt.T = sol.T;
       this.rt.waves = []; this.rt.chData = [];
@@ -2925,6 +3022,7 @@ Object.assign(PB.I18N.de, {
       }
       this.rt.xc = {};
       this.rt.ideal = ctx.ideal;
+      if (sol.T) this.rt.trace = null; else this.pushHist();
     }
     /* channel volts at phase-relative time */
     sigAt(i, ph) { const w = this.rt.waves && this.rt.waves[i]; if (!w) return 0; return w.length === 1 ? w[0] : PB.sampleWave(w, ph); }
@@ -2951,7 +3049,7 @@ Object.assign(PB.I18N.de, {
       return base;
     }
     /* acquire a record of M points over nDiv divisions */
-    acquire(now) {
+    acquire(now, forceTrig) {
       const s = this.state, T = this.rt.T;
       const nDiv = this.gridDivs();
       const M = nDiv * 50;
@@ -2961,7 +3059,8 @@ Object.assign(PB.I18N.de, {
       let trigd = false, phTrig = Math.random(), tTrigAbs = tAbs;
       const t = s.trig;
       const roll = s.acq.mode === 'Roll';
-      if (!roll) {
+      if (forceTrig !== undefined) tTrigAbs = forceTrig;
+      else if (!roll) {
         if (t.src === 'AC Line') { phTrig = null; const ph50 = (tAbs * 50) % 1; tTrigAbs = tAbs - ph50 / 50; trigd = true; }
         else if (typeof t.src === 'number' && s.ch[t.src]) {
           const c = s.ch[t.src];
@@ -2983,7 +3082,7 @@ Object.assign(PB.I18N.de, {
         }
       }
       if (!trigd && t.mode === 'Normal' && !roll) return { trigd: false };
-      const rec = { ch: [], t0: 0, win, nDiv, M, tb, trigd, at: now };
+      const rec = { ch: [], t0: 0, win, nDiv, M, tb, trigd, at: now, tTrig: tTrigAbs };
       const tref = s.tref * tb;
       for (let i = 0; i < 4; i++) {
         const c = s.ch[i];
@@ -2994,10 +3093,11 @@ Object.assign(PB.I18N.de, {
         const q = c.vdiv / c.probe / 25;
         const phi = Math.random() * 6.283;
         for (let j = 0; j < M; j++) {
-          const tr = (j / (M - 1) - 0.5) * win - s.hpos - tref;
+          const tr = (j / (M - 1) - 0.5) * win + s.hpos - tref;
           let v;
-          if (roll) v = T ? this.sigAt(i, (tAbs - win / 2 + tr) / T) : this.sigAt(i, 0);
-          else if (phTrig === null || !T) v = T ? this.sigAt(i, (tTrigAbs + tr) / T) : this.sigAt(i, 0);
+          if (!T) v = this.rt.trace ? this.histAt(i, (roll ? tAbs - win / 2 : tTrigAbs) + tr) : this.sigAt(i, 0);
+          else if (roll) v = this.sigAt(i, (tAbs - win / 2 + tr) / T);
+          else if (phTrig === null) v = this.sigAt(i, (tTrigAbs + tr) / T);
           else v = this.sigAt(i, phTrig + tr / T);
           if (c.cpl === 'AC') v -= mean;
           const ta = (roll ? tAbs - win / 2 : tTrigAbs) + tr;
@@ -3042,7 +3142,7 @@ Object.assign(PB.I18N.de, {
         if (slow) {
           if (!this.rt.slow || now - this.rt.slow.start > this.rt.slow.rec.win * 1000 / 2 + 300) {
             const r = this.acquire(now); if (r.ch) { this.rt.slow = { start: now, rec: r }; }
-          }
+          } else if (!this.rt.T) { const r = this.acquire(now, this.rt.slow.rec.tTrig); if (r.ch) this.rt.slow.rec = r; }
           if (this.rt.slow) { const r = this.rt.slow.rec; r.progress = Math.min(1, 0.5 + (now - this.rt.slow.start) / (r.win * 1000)); this.rt.rec = r; this.rt.trigd = r.trigd; }
         } else {
           const r = this.acquire(now);
@@ -3292,7 +3392,7 @@ Object.assign(PB.I18N.de, {
       const nDiv = this.gridDivs();
       const src = c.src === 4 ? { vdiv: s.math.vdiv, pos: s.math.pos, probe: 1 } : s.ch[c.src];
       const arr = this.recSrc(c.src);
-      const tAt = (xd) => xd * s.tb - s.hpos - s.tref * s.tb;
+      const tAt = (xd) => xd * s.tb + s.hpos - s.tref * s.tb;
       const vAtY = (yd) => (yd - src.pos) * src.vdiv;
       const vOnWave = (xd) => { if (!arr) return null; const j = PB.clamp(Math.round((xd / nDiv + 0.5) * (rec.M - 1)), 0, rec.M - 1); return arr[j]; };
       return { src, tAt, vAtY, vOnWave, arr };
@@ -3585,6 +3685,44 @@ Object.assign(PB.I18N.de, {
     return s;
   };
 
+  /* ---------- TP4 setups ---------- */
+  // U (HMP 10 V) ─ J ─ R 47 kΩ ─ C 100 µF (+) ; C(−) ─ A│HMC│COM ─ U(−) ; K between J output and the return
+  const t4dc = (o) => {
+    const s = base();
+    s.comps.push(R('R1', [h(0, 1, 8), h(0, 1, 16)], 47000), { id: 'C1', type: 'C', pins: [h(0, 2, 16), h(0, 2, 24)], v: 100e-6, ckind: 'elec', tf: 1 });
+    s.wires.push(W('wP', 'sL0.1', h(0, 0, 4), 'red'), W('wA', h(0, 3, 24), 'sR0.0', 'blue'), W('wG', 'sR1.0', h(1, 4, 8), 'black'), W('wV', 'sL1.1', h(0, 3, 16), 'yellow'));
+    if (o.J) s.wires.push(W('J', h(0, 2, 4), h(0, 2, 8), 'green'));
+    if (o.K) s.wires.push(W('K', h(0, 4, 8), h(1, 0, 8), 'green'));
+    s.cables.push(B('c1', 'hmp.ch1.p', 'brd.L0', 'red'), B('c2', 'hmp.ch1.m', 'brd.R1', 'black'), B('c3', 'brd.R0', 'dmm1.a', 'blue'), B('c4', 'dmm1.com', 'brd.R1', 'black'), B('c5', 'dmm1.v', 'brd.L1', 'yellow'));
+    s.dev.hmp = { ch: [{ v: 10, i: 0.1, sel: true }], out: true };
+    s.dev.dmm1 = { fn: 'DCV', second: { DCV: 'DC I' } };
+    s.on = ['hmp', 'dmm1'];
+    if (o.scope) {
+      s.adapters.push({ id: 'as', port: 'scope.ch1' });
+      s.cables.push(B('c6', 'as.r', 'brd.L1', 'yellow'), B('c7', 'as.k', 'brd.R1', 'black'));
+      s.dev.hmo = { ch: [{ on: true, vdiv: 2, pos: -4, cpl: 'DC' }], tb: 2, acq: { mode: 'Roll' }, trig: { src: 0, lvl: [5, 0, 0, 0], mode: 'Auto' } };
+      s.on.push('hmo');
+    }
+    s.states = { C1: o.uc || 0 };
+    return s;
+  };
+  // square wave 0…10 V, 50 Hz → R → C 1 µF ; CH1 = u(t), CH2 = uC(t)
+  const t4sq = (rv, extra) => {
+    const s = base();
+    s.comps.push(R('R1', [h(0, 1, 4), h(0, 1, 12)], rv), { id: 'C1', type: 'C', pins: [h(0, 2, 12), h(0, 2, 20)], v: 1e-6, ckind: 'cer', tf: 1 });
+    s.wires.push(W('w1', 'sL0.1', h(0, 0, 4), 'red'), W('w2', h(0, 3, 20), 'sR0.0', 'black'), W('w3', 'sL1.1', h(0, 3, 12), 'yellow'));
+    s.adapters.push({ id: 'ag', port: 'gen.out' }, { id: 'a1', port: 'scope.ch1' }, { id: 'a2', port: 'scope.ch2' });
+    s.cables.push(B('c1', 'ag.r', 'brd.L0', 'red'), B('c2', 'ag.k', 'brd.R0', 'black'), B('c3', 'a1.r', 'brd.L0', 'yellow'), B('c4', 'a1.k', 'brd.R0', 'black'), B('c5', 'a2.r', 'brd.L1', 'blue'), B('c6', 'a2.k', 'brd.R0', 'black'));
+    s.dev.hmf = { wave: 'square', freq: 50, ampl: 10, offset: 5, offOn: true, out: true, duty: 50 };
+    s.dev.hmo = Object.assign({
+      ch: [{ on: true, vdiv: 2, pos: -3, cpl: 'DC' }, { on: true, vdiv: 2, pos: -3, cpl: 'DC' }], tb: 5e-3, sel: 1,
+      trig: { src: 0, lvl: [5, 0, 0, 0], slope: 'rise', mode: 'Auto', filt: 'DC' },
+      meas: [{ on: true, type: 'Peak Peak', src: 1 }, { on: true, type: 'Mean', src: 1 }, { on: true, type: 'Mean', src: 0 }, { on: true, type: 'Frequency', src: 0 }, { on: false }, { on: false }],
+    }, extra || {});
+    s.on = ['hmf', 'hmo'];
+    return s;
+  };
+
   PB.TPS = [
     {
       id: 'tp1', name: 'TP1', title: 'Instrumentation',
@@ -3682,6 +3820,36 @@ Object.assign(PB.I18N.de, {
           steps: ['À partir de 1.4, calcule la puissance moyenne fournie à R₂’ par U₀, par u₁ et par les deux.', 'Compare P₀₊₁ à P₀ + P₁ et explique.'],
           hints: ['P₀ = UAB,0² / R₂’ ≈ 0.23 mW.', 'P₁ = UAB,1,eff² / R₂’ = ÛAB,1² / (2R₂’) ≈ 0.14 mW.', 'Ici P₀₊₁ ≈ P₀ + P₁ ≈ 0.37 mW : la moyenne du terme croisé 2·UAB,0·ÛAB,1·sin(2πft) est nulle sur une période.'],
           setups: [{ label: 'U₀ (HMP) + u₁ (générateur)', make: () => t3({ gen: true }) }] },
+      ],
+    },
+    {
+      id: 'tp4', name: 'TP4', title: 'Le condensateur',
+      goal: 'Observer l’inertie d’un condensateur aux variations de tension ; étudier sa charge et sa décharge à travers une résistance, sous tension continue puis rectangulaire.',
+      ex: [
+        { n: '1.1', t: 'Charge sous tension continue',
+          steps: ['Circuit : U = 10 V (HMP) → interrupteur J → R = 47 kΩ → C = 100 µF (électrolytique) → retour à U ; l’interrupteur K relie la sortie de J au retour. J et K sont de simples fils de liaison.', 'Avant la mesure : exprime et calcule le courant iC0 à la fermeture de J (C déchargé), puis la tension uC∞ en fin de charge.', 'Câble en respectant la polarité du condensateur, ferme J et observe ensemble iC et uC sur un seul HMC8012.', 'Comment iC et uC varient-ils, et entre quelles limites ?', 'Une fois C complètement chargé, ouvre J : que devient la tension à ses bornes ?'],
+          hints: ['Fermer J = poser un fil entre A5 et A9 ; l’ouvrir = supprimer ce fil (clic droit). K se pose entre A9 et B9. Le condensateur garde sa charge entre deux manipulations.', 'Un seul multimètre suffit : DC V en mesure principale (bornes V–COM aux bornes de C) et DC I en 2nd Function (borne A en série dans le retour de C).', 'À t = 0, uC = 0 : toute la tension est aux bornes de R, donc iC0 = U/R = 10 V / 47 kΩ ≈ 0.213 mA. En fin de charge iC = 0, plus de chute dans R : uC∞ = U = 10 V.', 'iC décroît rapidement puis de plus en plus lentement (exponentielle) de 0.21 mA vers 0 ; uC croît de la même façon jusqu’à ≈ 9.95 V (le voltmètre de 10 MΩ et la fuite du condensateur forment un léger diviseur).', 'J ouvert, C garde sa charge mais la tension baisse très lentement : la résistance de fuite Rf de l’électrolytique (et l’entrée du multimètre) le décharge.', 'Montage « avec oscilloscope » : en mode ROLL (2 s/div) la courbe défile en temps réel. Mais l’entrée 1 MΩ de l’oscilloscope se retrouve en parallèle sur C : uC tend vers ≈ 9.5 V et τ devient (R ∥ 1 MΩ)·C ≈ 4.5 s. C’est pour cela que le TP mesure au multimètre (10 MΩ).'],
+          setups: [{ label: 'J et K ouverts (C déchargé)', make: () => t4dc({}) }, { label: 'J fermé : la charge démarre', make: () => t4dc({ J: true }) }, { label: 'Avec oscilloscope en ROLL', make: () => t4dc({ J: true, scope: true }) }] },
+        { n: '1.2', t: 'Décharge',
+          steps: ['J étant ouvert, ferme K et observe comme précédemment l’évolution de iC et de uC.', 'Comment iC et uC varient-ils, et entre quelles limites ?'],
+          hints: ['Fermer K = poser un fil entre A9 et B9 : C se décharge dans R.', 'iC repart de ≈ 0.2 mA en valeur absolue mais négativement (le courant circule en sens inverse) : de −0.21 mA vers 0.', 'uC chute exponentiellement de ≈ 9.9 V vers 0 V avec la même constante de temps τ = RC.'],
+          setups: [{ label: 'C chargé, J et K ouverts', make: () => t4dc({ uc: 9.94 }) }, { label: 'C chargé, K fermé : la décharge démarre', make: () => t4dc({ K: true, uc: 9.94 }) }, { label: 'Décharge avec oscilloscope', make: () => t4dc({ K: true, uc: 9.94, scope: true }) }] },
+        { n: '1.3', t: 'Constante de temps τ = RC',
+          steps: ['Pendant la charge, mesure le temps au bout duquel uC atteint 95 % de sa valeur finale : Δt95%.', 'Compare cette durée à τ = RC et conclus.'],
+          hints: ['τ = RC = 47 kΩ × 100 µF = 4.7 s.', 'uC(t) = U·(1 − e^(−t/τ)) atteint 63 % de U en τ, 86 % en 2τ, 95 % en 3τ, 99 % en 5τ.', 'Δt95% ≈ 3τ ≈ 14 s (la solution du labo trouve ≈ 15 s).', 'Au multimètre : chronomètre le passage de 0 à 9.5 V (95 % de 10 V). Astuce : MEAS → Stats compte les mesures (5 par seconde en ADC Slow).', 'À l’oscilloscope (montage ROLL) : RUN/STOP fige la courbe, puis CURSOR MEASURE (Time ou V-Marker) entre le début de la charge et 95 % de la valeur finale. Avec la charge de 1 MΩ, on trouve ≈ 3 × 4.5 s.'],
+          setups: [{ label: 'J fermé (multimètre seul)', make: () => t4dc({ J: true }) }, { label: 'J fermé + oscilloscope en ROLL', make: () => t4dc({ J: true, scope: true }) }] },
+        { n: '2', t: 'Tension rectangulaire : influence de τ',
+          steps: ['Le générateur fournit un signal rectangulaire de 50 Hz, alternativement U = 10 V puis 0 V, appliqué au circuit R–C (C = 1 µF).', 'Observe ensemble u(t) (CH1) et uC(t) (CH2), même calibre sur les deux voies, pour R = 1 kΩ, 10 kΩ et 100 kΩ, sans changer la base de temps.', 'Calcule τ pour chaque R et exprime-le en fonction de la durée D d’une demi-période.', 'Mesure l’ondulation ΔuC (crête à crête) et la valeur moyenne UC de uC(t), et compare UC à la valeur moyenne U de u(t).', 'Comment l’ondulation varie-t-elle avec τ ? Explique le processus de charge et de décharge dans chaque cas.'],
+          hints: ['Signal 0…10 V sur le HMF : forme carrée, Amplitude 10 Vpp, Offset 5 V (touche OFFSET allumée), 50 Hz. D = T/2 = 10 ms.', 'τ = RC : 1 ms = D/10 ; 10 ms = D ; 100 ms = 10 D.', 'AUTO MEASURE : Peak Peak et Mean sur CH2, Mean sur CH1. Avec 5 ms/div, l’écran couvre exactement 3 périodes : les moyennes sont justes.', 'Valeurs du corrigé : ΔuC ≈ 10 V, 4.5 V et 0.5 V ; UC ≈ 5 V dans les trois cas, comme la moyenne de u(t).', 'Plus τ est grand devant D, plus l’ondulation est petite : avec τ ≪ D, C se charge et se décharge complètement ; avec τ ≈ D, il n’en a pas le temps ; avec τ ≫ D, la charge et la décharge sont infimes.', 'Avec R = 1 kΩ, u(t) s’arrondit légèrement à chaque front : c’est la chute de tension dans les 50 Ω du générateur due au courant de charge.'],
+          setups: [{ label: 'R = 1 kΩ', make: () => t4sq(1000) }, { label: 'R = 10 kΩ', make: () => t4sq(10000) }, { label: 'R = 100 kΩ', make: () => t4sq(100000) }] },
+        { n: '3', t: 'Mesure de τ aux curseurs',
+          steps: ['Affiche une demi-période de charge sur presque toute la largeur de l’écran.', 'Place deux curseurs verticaux : l’un au début de la charge, l’autre là où uC atteint 63 % de son amplitude (37 % pour une décharge). L’écart entre eux vaut τ.'],
+          hints: ['Réglages proposés : R = 1 kΩ, 1 ms/div, trigger sur CH1 front montant à 5 V, point de déclenchement décalé d’une division depuis le bord gauche.', 'CURSOR MEASURE → Type V-Marker → Source CH2 : le bouton universel déplace le curseur actif, un appui sur le bouton passe à l’autre.', 'τ attendu ≈ (1 kΩ + 50 Ω) × 1 µF ≈ 1.05 ms : la résistance interne du générateur s’ajoute à R.', 'Avec un signal 0…10 V, 63 % correspond à uC ≈ 6.3 V.'],
+          setups: [{ label: 'R = 1 kΩ, curseurs prêts', make: () => t4sq(1000, { tb: 1e-3, hpos: 5e-3, meas: [{ on: false }, { on: false }, { on: false }, { on: false }, { on: false }, { on: false }], cursor: { on: true, type: 'V-Marker', src: 1, x: [-5, -4], act: 1 } }) }] },
+        { n: '4', t: 'Tension aux bornes de R : uR = u − uC',
+          steps: ['À partir de uC(t) et u(t), déduis la tension aux bornes de la résistance uR(t) = u(t) − uC(t), image du courant iC = uR/R.', 'Affiche-la avec la fonction MATH de l’oscilloscope (CH1 − CH2) et compare-la à la forme théorique.'],
+          hints: ['Forme générale : uC(t) = uC∞ − (uC∞ − uC(t₀))·e^(−(t−t₀)/τ), avec uC∞ = U pendant la charge et 0 pendant la décharge.', 'uR(t) = u(t) − uC(t) saute de ±ΔuC à chaque front puis décroît exponentiellement vers 0 : le courant de charge est maximal juste après le front.', 'MATH → Source 1 = CH1, Operator = −, Source 2 = CH2 (trace orange).'],
+          setups: [{ label: 'R = 10 kΩ, MATH = CH1 − CH2', make: () => t4sq(10000, { math: { on: true, a: 0, op: '−', b: 1, vdiv: 2, pos: 0 }, sel: 4 }) }] },
       ],
     },
   ];
@@ -4781,6 +4949,7 @@ Object.assign(PB.I18N.de, {
       if (data.board) { this.board.x = data.board.x; this.board.y = data.board.y; this.placeBoard(); }
       if (data.ui) Object.assign(this.ui, data.ui);
       this.sel = null; this.pend = null; this.hist = []; this.redoStack = [];
+      this.tr = null; this.trSeed = null; this.lastPeriodic = null;
       this.applyProject();
       if (data.view) this.setView(data.view.x, data.view.y, data.view.z); else setTimeout(() => this.fit(), 30);
       this.syncFans(); this.devList.forEach((d) => d.kind === 'hmc' && PB.sfx.toneOff(d.id));
@@ -5330,6 +5499,8 @@ Object.assign(PB.I18N.de, {
       this.syncFans(); this.refreshTools(); this.renderInspector(); this.dirty(); this.markSave();
       PB.sfx.plug(); PB.sfx.bnc(0.15); PB.sfx.plug(0.3);
       this.autosetPending = !!s.autoset;
+      this.tr = null; this.lastPeriodic = null;
+      this.trSeed = s.states ? new Map(Object.entries(s.states)) : new Map();
       this.fit();
       this.toast(t('tp.loaded', { n: label }));
       return true;
@@ -5363,7 +5534,7 @@ Object.assign(PB.I18N.de, {
         switch (c.type) {
           case 'R': nl.add({ t: 'R', n, rv: v, tag: c.id }); break;
           case 'C': nl.add({ t: 'C', n, c: v, tag: c.id }); if (c.ckind === 'elec') nl.add({ t: 'R', n, rv: 5e7 }); break;
-          case 'L': nl.add({ t: 'L', n, l: v, rs: Math.max(c.rs || 0, 1e-3), tag: c.id }); break;
+          case 'L': nl.add({ t: 'L', n, l: v, rs: Math.max(c.rs || 0, 1e-3), tag: c.id }); nl.add({ t: 'R', n, rv: 1e6 }); break;
           case 'D': case 'LED': case 'Z': nl.add({ t: 'D', n, m: PB.DIODES[c.model], tag: c.id }); break;
           case 'OA': nl.add({ t: 'OA', n: [n[2], n[1], n[6], n[3], n[5]], tag: c.id }); break;
           case 'POT': nl.add({ t: 'R', n: [n[0], n[1]], rv: Math.max(0.5, v * c.pos) }); nl.add({ t: 'R', n: [n[1], n[2]], rv: Math.max(0.5, v * (1 - c.pos)) }); break;
@@ -5387,11 +5558,29 @@ Object.assign(PB.I18N.de, {
         if (gen.noise) N = Math.max(N, 4096);
       }
       let sol;
-      try { sol = PB.solve(nl, { T, N, Nnl: Math.min(N, 2048), budget: 350 }); }
-      catch (err) { console.error(err); return; }
+      try {
+        if (gen) { sol = PB.solve(nl, { T, N, Nnl: Math.min(N, 2048), budget: 350 }); this.lastPeriodic = sol; this.tr = null; }
+        else {
+          // DC sources only: real-time transient, continuing from the previous capacitor/inductor states
+          let seed = null;
+          if (this.tr) seed = this.tr.states();
+          else if (this.trSeed) seed = this.trSeed;
+          else if (this.lastPeriodic && this.lastPeriodic.T) seed = this.lastPeriodic.statesAt((now / 1000) / this.lastPeriodic.T);
+          this.trSeed = null; this.lastPeriodic = null;
+          const t0 = performance.now();
+          this.tr = PB.transient(nl, { states: seed });
+          sol = this.tr.solution(); sol.ms = performance.now() - t0;
+          this.trCtx = ctx; this.trLast = now; this.trQuiet = 0;
+        }
+      } catch (err) { console.error(err); return; }
       this.sol = sol; this.nl = nl;
       for (const d of this.devList) d.onSolve(sol, ctx);
       if (this.autosetPending && this.devices.hmo.state.on) { this.autosetPending = false; this.devices.hmo.autoset(); }
+      this.checkParts(sol);
+      $('#simInfo').textContent = t('st.sim', { ms: sol.ms.toFixed(0) }) + (T ? ` · T = ${PB.si(T, 's', 3, false)}` : ' · DC');
+    }
+    checkParts(sol) {
+      const p = this.proj;
       // component checks
       const hot = new Set(), led = new Map(), warns = [];
       for (const c of p.comps) {
@@ -5404,10 +5593,21 @@ Object.assign(PB.I18N.de, {
       this.rtHot = hot; this.rtLed = led;
       if (changed) this.renderParts();
       $('#warn').textContent = warns[0] || '';
-      $('#simInfo').textContent = t('st.sim', { ms: sol.ms.toFixed(0) }) + (T ? ` · T = ${PB.si(T, 's', 3, false)}` : ' · DC');
+    }
+    /* advance the DC transient in real time */
+    stepTransient(now) {
+      const dt = (now - this.trLast) / 1000; this.trLast = now;
+      if (!(dt > 0)) return;
+      const ch = this.tr.step(Math.min(dt, 1));
+      if (ch < 1e-9) { if (++this.trQuiet > 90) return; } else this.trQuiet = 0;
+      const sol = this.tr.solution();
+      this.sol = sol;
+      for (const d of this.devList) d.onTransient(sol, this.trCtx);
+      if (!this.lastCheck || now - this.lastCheck > 250) { this.lastCheck = now; this.checkParts(sol); }
     }
     loop(now) {
       if (this.isDirty && now - this.lastSolve > 35) { this.isDirty = false; this.lastSolve = now; this.solve(now); }
+      else if (this.tr && !this.isDirty) this.stepTransient(now);
       for (const d of this.devList) { const bt = d.state.on && d.booting(); if (d.rt.wasBoot && !bt) { d.rt.needDraw = true; d.rt.lastAcq = 0; } d.rt.wasBoot = bt; d.tick(now); d.render(); }
       if (this.saveDue && now > this.saveDue) { this.saveDue = 0; this.autosave(); }
       requestAnimationFrame((n) => this.loop(n));
